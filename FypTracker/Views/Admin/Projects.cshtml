@@ -1,0 +1,175 @@
+﻿@model AdminProjectsViewModel
+@{
+    ViewData["Title"] = "Manage FYP projects";
+}
+
+<partial name="_AdminBar" />
+
+<section class="page-hero compact">
+    <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <h1 class="fw-bold mb-1">FYP projects</h1>
+            <p class="lead mb-0" style="opacity: .9;">These records are what every student idea is compared with.</p>
+        </div>
+        <a asp-action="Create" class="btn-gold"><i class="bi bi-plus-lg"></i> Add project</a>
+    </div>
+</section>
+
+<section class="container page-body">
+
+    @if (TempData["Success"] is string okMessage)
+    {
+        <div class="alert alert-success" role="alert"><i class="bi bi-check-circle"></i> @okMessage</div>
+    }
+    @if (TempData["Error"] is string errorMessage)
+    {
+        <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-circle"></i> @errorMessage</div>
+    }
+
+    <!-- Counts -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-archive"></i></div>
+                <div><strong>@Model.TotalProjects</strong><span class="stat-label">Total projects</span></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-building"></i></div>
+                <div><strong>@Model.DepartmentCount</strong><span class="stat-label">Departments</span></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-calendar-event"></i></div>
+                <div><strong>@Model.LatestYear</strong><span class="stat-label">Latest project year</span></div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.ByDepartment.Count > 0)
+    {
+        <div class="mb-4">
+            <span class="small text-muted me-2">By department:</span>
+            @foreach (var entry in Model.ByDepartment.OrderBy(e => e.Key))
+            {
+                <span class="chip">@entry.Key: <strong>@entry.Value</strong></span>
+            }
+        </div>
+    }
+
+    <!-- Search and filter -->
+    <form method="get" asp-action="Projects" class="row g-2 mb-3">
+        <div class="col-md-6">
+            <input type="search" name="q" value="@Model.Query" class="form-control form-control-lg"
+                   placeholder="Search by title or supervisor" aria-label="Search projects" />
+        </div>
+        <div class="col-md-4">
+            <select name="department" class="form-select form-select-lg" aria-label="Filter by department">
+                <option value="">All departments</option>
+                @foreach (var d in DepartmentOptions.All)
+                {
+                    <option value="@d" selected="@(Model.SelectedDepartment == d)">@d</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn-brand" aria-label="Search"><i class="bi bi-search"></i></button>
+            <a asp-action="Projects" class="btn-outline-brand" aria-label="Reset filters"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </form>
+
+    <!-- Table -->
+    @if (Model.Projects.Count == 0)
+    {
+        <div class="step-card text-center text-muted">
+            <i class="bi bi-inbox display-5"></i>
+            <p class="mt-2 mb-0">No projects match your search.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Department</th>
+                            <th>Supervisor</th>
+                            <th>Year</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Projects)
+                        {
+                            <tr>
+                                <td style="min-width: 260px;">
+                                    <div class="fw-semibold">@p.Title</div>
+                                    <div class="small text-muted">@(p.Description.Length > 90 ? p.Description[..90] + "..." : p.Description)</div>
+                                </td>
+                                <td><span class="dept-badge">@p.Department</span></td>
+                                <td>@p.SupervisorName</td>
+                                <td>@p.Year</td>
+                                <td class="text-end text-nowrap">
+                                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn-icon-lg" aria-label="Edit @p.Title" title="Edit">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <button type="button" class="btn-icon-lg danger" title="Delete" aria-label="Delete @p.Title"
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                            data-id="@p.Id" data-title="@p.Title">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <p class="small text-muted mt-2">Showing @Model.Projects.Count of @Model.TotalProjects projects.</p>
+    }
+
+</section>
+
+<!-- Delete confirmation (one box reused for every row) -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="Delete" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Delete this project?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="deleteId" />
+                    <p class="mb-1">You are about to delete:</p>
+                    <p class="fw-bold mb-2" id="deleteTitle"></p>
+                    <p class="text-muted small mb-0">This cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center py-4 text-muted small">
+    &copy; 2026 NUML Islamabad &bull; Advance Programming Project
+</footer>
+
+@section Scripts {
+    <script>
+        // Fill the confirmation box with the project that was clicked
+        const deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            document.getElementById('deleteId').value = button.getAttribute('data-id');
+            document.getElementById('deleteTitle').textContent = button.getAttribute('data-title');
+        });
+    </script>
+}

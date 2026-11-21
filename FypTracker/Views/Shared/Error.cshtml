@@ -1,0 +1,15 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+    var page = new StatusPageViewModel
+    {
+        Code = "500",
+        Title = "Something went wrong",
+        Message = "An unexpected problem happened on our side. Please try again in a moment.",
+        Icon = "bi-exclamation-triangle",
+        RequestId = Model?.RequestId
+    };
+}
+
+<partial name="_TopBar" />
+<partial name="_StatusCard" model="page" />

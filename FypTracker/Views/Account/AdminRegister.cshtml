@@ -1,0 +1,77 @@
+﻿@model AdminRegisterViewModel
+@{
+    ViewData["Title"] = "Admin Registration";
+}
+
+<partial name="_TopBar" />
+
+<section class="auth-wrap">
+    <div class="auth-card wide admin">
+        <div class="auth-head">
+            <div class="role-icon role-admin mx-auto mb-3"><i class="bi bi-person-gear"></i></div>
+            <h2 class="fw-bold">Admin Registration</h2>
+            <p class="text-muted mb-0">Only authorized staff can create an admin account.</p>
+        </div>
+
+        <form asp-action="AdminRegister" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FullName" class="form-label fw-semibold"></label>
+                    <input asp-for="FullName" class="form-control form-control-lg" placeholder="e.g. Sara Ahmed" autocomplete="name" />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Username" class="form-label fw-semibold"></label>
+                    <input asp-for="Username" class="form-control form-control-lg" placeholder="e.g. sara_admin" autocomplete="username" />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="AccessCode" class="form-label fw-semibold"></label>
+                    <div class="input-group input-group-lg">
+                        <input asp-for="AccessCode" class="form-control" placeholder="Code given by the department" autocomplete="off" />
+                        <button type="button" class="btn btn-outline-secondary" data-toggle-password="#AccessCode" aria-label="Show access code">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="AccessCode" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Password" class="form-label fw-semibold"></label>
+                    <div class="input-group input-group-lg">
+                        <input asp-for="Password" class="form-control" placeholder="Create a password" autocomplete="new-password" />
+                        <button type="button" class="btn btn-outline-secondary" data-toggle-password="#Password" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">At least 8 characters, including a number.</div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
+                    <div class="input-group input-group-lg">
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Repeat the password" autocomplete="new-password" />
+                        <button type="button" class="btn btn-outline-secondary" data-toggle-password="#ConfirmPassword" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-brand mt-4">Create admin account <i class="bi bi-person-check"></i></button>
+        </form>
+
+        <div class="text-center mt-4">
+            <span class="text-muted small">Already an admin?</span>
+            <a asp-action="AdminLogin" class="small fw-semibold text-decoration-none">Log in</a>
+            &nbsp;&bull;&nbsp;
+            <a asp-action="Choose" class="small text-decoration-none">Back to role selection</a>
+        </div>
+    </div>
+</section>

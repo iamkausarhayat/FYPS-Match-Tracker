@@ -1,0 +1,181 @@
+﻿@model SimilarityResultViewModel
+@{
+    ViewData["Title"] = "Your result";
+    var top = Model.TopMatch;
+    var sources = Model.PaperMatches.Any() ? "previous FYPs and research papers" : "previous FYPs";
+    var papersNote = TempData["PapersNote"] as string;
+}
+
+<partial name="_TopBar" />
+
+<section class="page-hero compact">
+    <div class="container">
+        <h1 class="fw-bold mb-2">Your similarity report</h1>
+        <p class="lead mb-0" style="opacity: .9;">
+            Here is how your idea compares with the department's @sources.
+        </p>
+    </div>
+</section>
+
+<section class="container page-body">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <!-- Summary -->
+            <div class="step-card result-summary verdict-@Model.VerdictClass">
+                <div class="row align-items-center g-4">
+                    <div class="col-md-4 text-center">
+                        <div class="gauge" style="--pct:@Model.OverallPercent" role="img" aria-label="Overall similarity @Model.OverallPercent percent">
+                            <div class="gauge-inner">
+                                <strong>@Model.OverallPercent%</strong>
+                                <span>similar</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <span class="verdict-pill">@Model.Verdict</span>
+                        <h3 class="fw-bold mt-2 mb-1">@Model.Title</h3>
+                        <p class="text-muted small mb-3">Supervisor: @Model.SupervisorName &bull; File: @Model.FileName</p>
+                        <p class="mb-3">@Model.Advice</p>
+
+                        @if (top != null)
+                        {
+                            <div class="d-flex justify-content-between small">
+                                <span>Meaning match <span class="text-muted">(@Math.Round(SimilarityRules.MeaningWeight * 100)% of the score)</span></span>
+                                <strong>@Math.Round(top.MeaningScore)%</strong>
+                            </div>
+                            <div class="meter mb-2" role="progressbar" aria-label="Meaning match" aria-valuenow="@Math.Round(top.MeaningScore)" aria-valuemin="0" aria-valuemax="100">
+                                <span style="width:@Math.Round(top.MeaningScore)%"></span>
+                            </div>
+
+                            <div class="d-flex justify-content-between small">
+                                <span>Word match <span class="text-muted">(@Math.Round(SimilarityRules.WordWeight * 100)% of the score)</span></span>
+                                <strong>@Math.Round(top.WordScore)%</strong>
+                            </div>
+                            <div class="meter mb-3" role="progressbar" aria-label="Word match" aria-valuenow="@Math.Round(top.WordScore)" aria-valuemin="0" aria-valuemax="100">
+                                <span style="width:@Math.Round(top.WordScore)%"></span>
+                            </div>
+
+                            <p class="small text-muted mb-0">Closest match: <strong>@top.Title</strong></p>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- How the score is calculated -->
+            @if (top != null)
+            {
+                <div class="formula mb-4">
+                    <div class="fw-semibold mb-1"><i class="bi bi-calculator"></i> How this score is calculated</div>
+                    <div class="small">
+                        Final score = @Math.Round(SimilarityRules.MeaningWeight * 100)% &times; Meaning + @Math.Round(SimilarityRules.WordWeight * 100)% &times; Words<br />
+                        = @SimilarityRules.MeaningWeight &times; @Math.Round(top.MeaningScore) + @SimilarityRules.WordWeight &times; @Math.Round(top.WordScore)
+                        = <strong>@Math.Round(top.FinalScore)%</strong>
+                    </div>
+                    <div class="small text-muted mt-1">
+                        Meaning match compares the ideas inside your text. Word match compares the exact words used.
+                    </div>
+                </div>
+            }
+
+            <!-- Department FYPs -->
+            <h4 class="section-title mt-4 mb-3"><i class="bi bi-building"></i> Closest department FYPs</h4>
+            @if (Model.DepartmentMatches.Any())
+            {
+                @foreach (var item in Model.DepartmentMatches.OrderByDescending(m => m.FinalScore).Take(3))
+                {
+                    <partial name="_MatchCard" model="item" />
+                }
+            }
+            else
+            {
+                <p class="text-muted">No department projects were available to compare with.</p>
+            }
+
+            <!-- Research papers (Crossref): sirf padhne ke liye, in ka percentage nahi nikalta -->
+            <h4 class="section-title mt-4 mb-3"><i class="bi bi-journal-text"></i> Related research papers</h4>
+            @if (Model.Papers.Count > 0)
+            {
+                <p class="small text-muted">
+                    Found by searching Crossref with the main keywords of your idea. They are shown for reading only,
+                    so no similarity percentage is calculated for them.
+                </p>
+
+                @for (int i = 0; i < Model.Papers.Count; i++)
+                {
+                    var paper = Model.Papers[i];
+
+                    <div class="match-card">
+                        <span class="source-tag source-paper"><i class="bi bi-journal-text"></i> Research paper</span>
+                        <h5 class="fw-bold mb-1 mt-1">@paper.Title</h5>
+                        <div class="text-muted small mb-2">
+                            @paper.Authors
+                            @* Authors na hon to akela bullet nahi dikhate *@
+                            @if (paper.Year.HasValue && !string.IsNullOrEmpty(paper.Authors))
+                            {
+                                <span>&bull; @paper.Year</span>
+                            }
+                            else if (paper.Year.HasValue)
+                            {
+                                <span>@paper.Year</span>
+                            }
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(paper.Url))
+                        {
+                            <a href="@paper.Url" target="_blank" rel="noopener" class="small fw-semibold text-decoration-none">
+                                Open paper <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">
+                    @(papersNote ?? "No related research papers were saved for this check.")
+                </p>
+            }
+
+            <!-- What to do next -->
+            <div class="next-steps no-print mt-4 mb-5">
+                <div class="fw-semibold mb-2">What next?</div>
+                <div class="d-flex flex-wrap gap-3">
+                    <a asp-action="Upload" class="btn-brand auto-width"><i class="bi bi-arrow-repeat"></i> Check another idea</a>
+                    <button type="button" id="printBtn" class="btn-outline-brand auto-width"><i class="bi bi-printer"></i> Print or save as PDF</button>
+                    <a href="/" class="btn-outline-brand auto-width"><i class="bi bi-house"></i> Back to home</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<footer class="text-center py-4 text-muted small">
+    &copy; 2026 NUML Islamabad &bull; Advance Programming Project
+</footer>
+
+@section Scripts {
+    <script>
+        (function () {
+            const root = document.documentElement;
+            let savedTheme = null;
+
+            // Reports are printed on white paper, so switch to the light theme while printing
+            window.addEventListener('beforeprint', function () {
+                savedTheme = root.getAttribute('data-theme');
+                root.setAttribute('data-theme', 'light');
+                root.setAttribute('data-bs-theme', 'light');
+            });
+            window.addEventListener('afterprint', function () {
+                if (savedTheme) {
+                    root.setAttribute('data-theme', savedTheme);
+                    root.setAttribute('data-bs-theme', savedTheme);
+                }
+            });
+
+            document.getElementById('printBtn').addEventListener('click', function () { window.print(); });
+        })();
+    </script>
+}

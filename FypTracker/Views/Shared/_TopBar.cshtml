@@ -1,0 +1,21 @@
+﻿<header class="topbar">
+    <div class="container site-nav">
+        <a href="/" class="brand">
+            <img src="~/images/numl-logo.png" alt="NUML logo" />
+            <span class="brand-name">
+                NUML Islamabad
+                <small>FYP Match Tracker</small>
+            </span>
+        </a>
+        <nav class="d-flex align-items-center gap-3">
+            <partial name="_ThemeSwitcher" />
+            <a href="/" class="nav-link-soft"><i class="bi bi-house"></i> Home</a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                    <button type="submit" class="nav-link-soft border-0 bg-transparent"><i class="bi bi-box-arrow-right"></i> Log out</button>
+                </form>
+            }
+        </nav>
+    </div>
+</header>

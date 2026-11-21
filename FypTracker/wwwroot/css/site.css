@@ -1,0 +1,1082 @@
+/* ---------- Font (self-hosted, works without internet) ---------- */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('../fonts/inter-latin-wght-normal.woff2') format('woff2');
+}
+
+:root {
+    --navy-900: #061a3d;
+    --navy: #0b2a6b;
+    --blue: #1e56c9;
+    --sky: #4aa3ff;
+    --gold: #f6c343;
+    --gold-dark: #e3a90f;
+    --ink: #16233a;
+    --heading: #0b2a6b;
+    --link: #1e56c9;
+    --soft: #f5f8ff;
+    --surface: #ffffff;
+    --border: #e6ecf8;
+    --border-strong: #b8c7e6;
+    --muted: #6b7a90;
+    --tint-blue: #e8efff;
+    --tint-gold: #fff3d1;
+    --tint-warm: #fffaf0;
+    --tint-green: #e3f6ec;
+    --tint-red: #fde8e5;
+    --ok: #198754;
+    --warn: #a86a00;
+    --bad: #c0392b;
+}
+
+[data-theme="dark"] {
+    --ink: #e6edf7;
+    --heading: #e6edf7;
+    --link: #6db3ff;
+    --soft: #0b1220;
+    --surface: #121c2f;
+    --border: #26344d;
+    --border-strong: #3a4d70;
+    --muted: #9db0cf;
+    --tint-blue: #1a2a4d;
+    --tint-gold: #3a2e0f;
+    --tint-warm: #2a2210;
+    --tint-green: #10301f;
+    --tint-red: #3a1a1a;
+    --ok: #4cc58a;
+    --warn: #f0b955;
+    --bad: #ff7b6e;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: var(--soft);
+    color: var(--ink);
+}
+
+/* ---------- Hero ---------- */
+.hero {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    background-color: var(--navy);
+    background-image: linear-gradient(135deg, rgba(6, 26, 61, .92) 0%, rgba(11, 42, 107, .82) 55%, rgba(30, 86, 201, .7) 100%), url('../images/campus.jpg'), linear-gradient(135deg, var(--navy-900) 0%, var(--navy) 55%, var(--blue) 100%);
+    background-size: cover;
+    background-position: center;
+}
+
+    .hero > *:not(.hero-blob) {
+        position: relative;
+        z-index: 1;
+    }
+
+.hero-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    pointer-events: none;
+}
+
+.blob-1 {
+    width: 380px;
+    height: 380px;
+    top: -120px;
+    right: -80px;
+    background: var(--sky);
+    opacity: .35;
+}
+
+.blob-2 {
+    width: 300px;
+    height: 300px;
+    bottom: -140px;
+    left: -100px;
+    background: var(--gold);
+    opacity: .18;
+}
+
+.hero-body {
+    padding: 3rem 0 5rem;
+}
+
+/* ---------- Top bar ---------- */
+.site-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    color: #fff;
+    text-decoration: none;
+}
+
+    .brand:hover {
+        color: #fff;
+    }
+
+    .brand img {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: var(--surface);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
+    }
+
+.brand-name {
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+    .brand-name small {
+        display: block;
+        font-weight: 400;
+        font-size: .72rem;
+        letter-spacing: .04em;
+        opacity: .8;
+    }
+
+.nav-link-soft {
+    color: rgba(255, 255, 255, .85);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+    .nav-link-soft:hover {
+        color: #fff;
+    }
+
+/* ---------- Buttons (our own, not Bootstrap .btn) ---------- */
+.btn-gold,
+.btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .8rem 1.8rem;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.btn-gold {
+    background: var(--gold);
+    color: var(--navy-900);
+    box-shadow: 0 8px 22px rgba(246, 195, 67, .35);
+}
+
+    .btn-gold:hover {
+        background: var(--gold-dark);
+        color: var(--navy-900);
+        transform: translateY(-2px);
+    }
+
+.btn-ghost {
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, .5);
+}
+
+    .btn-ghost:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, .12);
+    }
+
+.btn-small {
+    padding: .5rem 1.2rem;
+    font-size: .9rem;
+}
+
+/* ---------- Hero text ---------- */
+.brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .4rem 1rem;
+    border-radius: 999px;
+    font-size: .78rem;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .25);
+}
+
+.text-gold {
+    color: var(--gold);
+}
+
+.stat strong {
+    display: block;
+    font-size: 1.6rem;
+    color: var(--gold);
+}
+
+.stat span {
+    font-size: .85rem;
+    opacity: .85;
+}
+
+/* ---------- Meter (used on the result page) ---------- */
+
+.meter {
+    height: 12px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--border);
+}
+
+    .meter > span {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--gold), #f08a24);
+    }
+
+/* ---------- Sections ---------- */
+.section-title {
+    font-weight: 800;
+    color: var(--heading);
+}
+
+.feature-card {
+    height: 100%;
+    padding: 1.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    box-shadow: 0 6px 24px rgba(11, 42, 107, .07);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+    .feature-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 36px rgba(11, 42, 107, .15);
+    }
+
+.feature-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1rem;
+    font-size: 1.6rem;
+    color: #fff;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--blue), var(--sky));
+}
+
+.cta-band {
+    padding: 2.5rem 1.5rem;
+    color: #fff;
+    text-align: center;
+    border-radius: 1.5rem;
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+}
+/* ---------- Inner pages ---------- */
+.topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+    .topbar .brand,
+    .topbar .brand:hover {
+        color: var(--heading);
+    }
+
+        .topbar .brand img {
+            box-shadow: 0 2px 8px rgba(11, 42, 107, .25);
+        }
+
+    .topbar .nav-link-soft {
+        color: var(--heading);
+    }
+
+        .topbar .nav-link-soft:hover {
+            color: var(--link);
+        }
+
+.page-hero {
+    padding: 3rem 0 6rem;
+    text-align: center;
+    color: #fff;
+    background: linear-gradient(135deg, var(--navy-900), var(--navy) 60%, var(--blue));
+}
+
+.page-body {
+    margin-top: -3.5rem;
+    padding-bottom: 3rem;
+}
+
+.info-strip {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .6rem 1.2rem;
+    font-size: .95rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .14);
+    border: 1px solid rgba(255, 255, 255, .3);
+}
+
+/* ---------- Role cards ---------- */
+.role-card {
+    display: block;
+    height: 100%;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--ink);
+    background: var(--surface);
+    border: 2px solid transparent;
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 30px rgba(11, 42, 107, .12);
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+    .role-card:hover {
+        color: var(--ink);
+        transform: translateY(-8px);
+        border-color: var(--gold);
+        box-shadow: 0 20px 44px rgba(11, 42, 107, .2);
+    }
+
+    .role-card:focus-visible {
+        outline: 3px solid var(--gold);
+        outline-offset: 3px;
+    }
+
+.role-icon {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 1.25rem;
+    font-size: 2.2rem;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.role-student {
+    background: linear-gradient(135deg, var(--blue), var(--sky));
+}
+
+.role-admin {
+    background: linear-gradient(135deg, var(--navy-900), var(--navy));
+}
+
+.role-guest {
+    background: linear-gradient(135deg, #0f9d8a, #4cc9b0);
+}
+
+.role-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    margin-top: 1rem;
+    font-weight: 700;
+    color: var(--link);
+}
+
+.role-note {
+    font-size: .85rem;
+    color: var(--muted);
+}
+/* ---------- Login and registration ---------- */
+.auth-wrap {
+    min-height: calc(100vh - 77px);
+    padding: 3rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--navy-900), var(--navy) 60%, var(--blue));
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 460px;
+    padding: 2.25rem 2rem;
+    background: var(--surface);
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, .3);
+}
+
+    .auth-card.wide {
+        max-width: 680px;
+    }
+
+.auth-head {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+    .auth-head .role-icon {
+        width: 72px;
+        height: 72px;
+        font-size: 1.9rem;
+    }
+
+.btn-brand,
+.btn-outline-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    width: 100%;
+    padding: .85rem 1.5rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 999px;
+    transition: background .15s ease, color .15s ease, transform .15s ease;
+}
+
+.btn-brand {
+    color: #fff;
+    background: var(--navy);
+    border: 2px solid var(--navy);
+}
+
+    .btn-brand:hover {
+        color: #fff;
+        background: var(--blue);
+        border-color: var(--blue);
+        transform: translateY(-1px);
+    }
+
+.btn-outline-brand {
+    color: var(--heading);
+    background: transparent;
+    border: 2px solid var(--navy);
+}
+
+    .btn-outline-brand:hover {
+        color: #fff;
+        background: var(--navy);
+    }
+
+.or-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0 1rem;
+    font-size: .85rem;
+    color: var(--muted);
+}
+
+    .or-divider::before,
+    .or-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 .2rem rgba(30, 86, 201, .18);
+}
+/* Admin pages get a gold top border so they look different from student pages */
+.auth-card.admin {
+    border-top: 6px solid var(--gold);
+}
+/* ---------- Upload page ---------- */
+.page-hero.compact {
+    padding: 2rem 0 5rem;
+    text-align: left;
+}
+
+.step-card {
+    margin-bottom: 1.25rem;
+    padding: 1.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 28px rgba(11, 42, 107, .08);
+}
+
+.step-title {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1.25rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--heading);
+}
+
+.step-no {
+    width: 34px;
+    height: 34px;
+    font-size: .95rem;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--blue), var(--sky));
+}
+
+.drop-zone {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    background: var(--soft);
+    border: 2px dashed var(--border-strong);
+    border-radius: 1rem;
+    transition: border-color .15s ease, background .15s ease;
+}
+
+    .drop-zone > i {
+        font-size: 2.8rem;
+        color: var(--link);
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragging,
+    .drop-zone:focus-visible {
+        outline: none;
+        background: var(--tint-warm);
+        border-color: var(--gold);
+    }
+
+.file-chip {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    margin-top: 1rem;
+    padding: .8rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: .9rem;
+}
+
+    .file-chip > i {
+        font-size: 1.6rem;
+        color: var(--link);
+    }
+
+.btn-icon {
+    padding: .25rem .5rem;
+    font-size: 1rem;
+    color: var(--muted);
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+}
+
+    .btn-icon:hover {
+        color: var(--bad);
+    }
+/* ---------- Result page ---------- */
+.result-summary.verdict-unique {
+    --verdict-color: var(--ok);
+    --verdict-bg: var(--tint-green);
+}
+
+.result-summary.verdict-similar {
+    --verdict-color: #d98a00;
+    --verdict-bg: var(--tint-gold);
+}
+
+.result-summary.verdict-done {
+    --verdict-color: var(--bad);
+    --verdict-bg: var(--tint-red);
+}
+
+.result-summary {
+    border-top: 6px solid var(--verdict-color);
+}
+
+.gauge {
+    --pct: 0;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: conic-gradient(var(--verdict-color) calc(var(--pct) * 1%), var(--border) 0);
+}
+
+.gauge-inner {
+    width: 136px;
+    height: 136px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+    .gauge-inner strong {
+        font-size: 2.4rem;
+        line-height: 1;
+        color: var(--verdict-color);
+    }
+
+    .gauge-inner span {
+        font-size: .8rem;
+        color: var(--muted);
+    }
+
+.verdict-pill {
+    display: inline-block;
+    padding: .3rem 1rem;
+    font-size: .85rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    color: var(--verdict-color);
+    background: var(--verdict-bg);
+}
+
+.formula {
+    padding: 1rem 1.25rem;
+    background: var(--soft);
+    border: 1px dashed var(--border-strong);
+    border-radius: .9rem;
+}
+
+.match-card {
+    margin-bottom: 1rem;
+    padding: 1.25rem 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.1rem;
+    box-shadow: 0 6px 20px rgba(11, 42, 107, .06);
+}
+
+.score-pill {
+    min-width: 72px;
+    height: 72px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.score-unique {
+    color: var(--ok);
+    background: var(--tint-green);
+}
+
+.score-similar {
+    color: var(--warn);
+    background: var(--tint-gold);
+}
+
+.score-done {
+    color: var(--bad);
+    background: var(--tint-red);
+}
+
+.chip {
+    display: inline-block;
+    margin: 0 .25rem .25rem 0;
+    padding: .15rem .7rem;
+    font-size: .8rem;
+    color: var(--heading);
+    background: var(--tint-blue);
+    border-radius: 999px;
+}
+
+.quote {
+    margin: .5rem 0;
+    padding: .7rem 1rem;
+    font-size: .92rem;
+    background: var(--tint-warm);
+    border-left: 4px solid var(--gold);
+    border-radius: .4rem;
+}
+
+.auto-width {
+    width: auto;
+}
+/* ---------- Admin pages ---------- */
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.1rem;
+    box-shadow: 0 6px 20px rgba(11, 42, 107, .06);
+}
+
+    .stat-card .stat-icon {
+        width: 52px;
+        height: 52px;
+        font-size: 1.5rem;
+        color: #fff;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--blue), var(--sky));
+    }
+
+    .stat-card strong {
+        display: block;
+        font-size: 1.7rem;
+        line-height: 1;
+        color: var(--heading);
+    }
+
+.stat-label {
+    display: block;
+    font-size: .85rem;
+    color: var(--muted);
+}
+
+.table-card {
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.1rem;
+    box-shadow: 0 8px 28px rgba(11, 42, 107, .08);
+}
+
+    .table-card .table {
+        margin-bottom: 0;
+    }
+
+    .table-card thead th {
+        font-size: .8rem;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        color: var(--heading);
+        background: var(--soft);
+        border-bottom: 1px solid var(--border);
+    }
+
+.dept-badge {
+    display: inline-block;
+    padding: .2rem .7rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--heading);
+    background: var(--tint-blue);
+    border-radius: 999px;
+}
+
+.btn-icon-lg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    color: var(--heading);
+    text-decoration: none;
+    cursor: pointer;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+    .btn-icon-lg:hover {
+        color: #fff;
+        background: var(--blue);
+        border-color: var(--blue);
+    }
+
+    .btn-icon-lg.danger:hover {
+        background: var(--bad);
+        border-color: var(--bad);
+    }
+
+/* ---------- Error / status pages ---------- */
+.status-wrap {
+    min-height: calc(100vh - 77px);
+    padding: 3rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--navy-900), var(--navy) 60%, var(--blue));
+}
+
+.status-card {
+    width: 100%;
+    max-width: 520px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    background: var(--surface);
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, .3);
+}
+
+.status-icon {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 1rem;
+    font-size: 2.2rem;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--blue), var(--sky));
+}
+
+.status-code {
+    margin-bottom: .5rem;
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--gold-dark);
+}
+/* ---------- Theme switch ---------- */
+.theme-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: rgba(255, 255, 255, .85);
+}
+
+    .theme-switch select {
+        background: transparent;
+        color: inherit;
+        border: 1px solid rgba(255, 255, 255, .35);
+        border-radius: 999px;
+        padding: .25rem .6rem;
+        font-size: .85rem;
+    }
+
+        .theme-switch select option {
+            background: var(--surface);
+            color: var(--ink);
+        }
+
+.topbar .theme-switch {
+    color: var(--heading);
+}
+
+    .topbar .theme-switch select {
+        border-color: var(--border-strong);
+    }
+
+/* Dark mode fixes */
+[data-theme="dark"] .btn-brand {
+    background: var(--blue);
+    border-color: var(--blue);
+}
+
+[data-theme="dark"] .btn-outline-brand {
+    border-color: var(--sky);
+}
+
+/* ---------- R3: same campus photo behind Choose, login, register and status pages ---------- */
+.page-hero,
+.auth-wrap,
+.status-wrap {
+    background-color: var(--navy);
+    background-image: linear-gradient(135deg, rgba(6, 26, 61, .92) 0%, rgba(11, 42, 107, .85) 60%, rgba(30, 86, 201, .75) 100%), url('../images/campus.jpg'), linear-gradient(135deg, var(--navy-900), var(--navy) 60%, var(--blue));
+    background-size: cover;
+    background-position: center;
+}
+
+/* Keyboard focus on the form buttons (they sit on a white or dark card) */
+.btn-brand:focus-visible,
+.btn-outline-brand:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+}
+
+/* Dark mode: hover and focus that can actually be seen */
+[data-theme="dark"] .btn-brand:hover {
+    color: var(--navy-900);
+    background: var(--sky);
+    border-color: var(--sky);
+}
+
+[data-theme="dark"] .btn-outline-brand:hover {
+    color: #fff;
+    background: var(--blue);
+    border-color: var(--blue);
+}
+
+[data-theme="dark"] .btn-brand:focus-visible,
+[data-theme="dark"] .btn-outline-brand:focus-visible {
+    outline-color: var(--sky);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    border-color: var(--sky);
+    box-shadow: 0 0 0 .2rem rgba(74, 163, 255, .25);
+}
+
+/* ---------- R4: Upload page ---------- */
+.count-ok {
+    color: var(--ok);
+}
+
+.count-bad {
+    color: var(--bad);
+}
+
+.drop-zone:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+}
+
+[data-theme="dark"] .drop-zone:focus-visible {
+    outline-color: var(--sky);
+}
+
+/* Waiting card while the idea is being analyzed */
+.busy-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 26, 61, .78);
+    backdrop-filter: blur(3px);
+}
+
+.busy-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 2rem 1.75rem;
+    text-align: center;
+    color: var(--ink);
+    background: var(--surface);
+    border-radius: 1.25rem;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, .35);
+}
+
+/* ---------- R5: Result page ---------- */
+.source-tag {
+    display: inline-block;
+    padding: .15rem .65rem;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    border-radius: 999px;
+}
+
+.source-dept {
+    color: var(--heading);
+    background: var(--tint-blue);
+}
+
+.source-paper {
+    color: var(--ok);
+    background: var(--tint-green);
+}
+
+.next-steps {
+    padding: 1.25rem 1.4rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.1rem;
+}
+
+/* Printing: only the report, no menus or buttons */
+@media print {
+    .topbar,
+    .no-print,
+    footer {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    .page-hero {
+        padding: 0 0 1rem;
+        color: #000;
+        background: none !important;
+        text-align: left;
+    }
+
+    .page-body {
+        margin-top: 0;
+    }
+
+    .step-card,
+    .match-card,
+    .formula {
+        box-shadow: none;
+        break-inside: avoid;
+    }
+
+    .gauge,
+    .verdict-pill,
+    .score-pill,
+    .meter,
+    .meter > span,
+    .source-tag,
+    .chip,
+    .quote {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+/* ---------- R6: Admin table, delete box and forms (light and dark) ---------- */
+.table-card .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--ink);
+    --bs-table-border-color: var(--border);
+    --bs-table-hover-bg: var(--tint-blue);
+    --bs-table-hover-color: var(--ink);
+}
+
+.modal-content {
+    --bs-modal-bg: var(--surface);
+    --bs-modal-color: var(--ink);
+    --bs-modal-border-color: var(--border);
+    --bs-modal-header-border-color: var(--border);
+    --bs-modal-footer-border-color: var(--border);
+    border-radius: 1.1rem;
+}
+
+/* Dark mode: form boxes use our colors instead of Bootstrap's grey */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    color: var(--ink);
+    background-color: var(--soft);
+    border-color: var(--border-strong);
+}
+
+    [data-theme="dark"] .form-control::placeholder {
+        color: var(--muted);
+        opacity: .85;
+    }
+/* ---------- Light mode: gehre rang, taake text saaf parha jaye (accessibility) ---------- */
+/* :not([data-theme="dark"]) ka matlab: sirf light mode. Dark mode ko haath nahi lagaya. */
+:root:not([data-theme="dark"]) {
+    --ok: #146c43;
+    --warn: #8a5a00;
+    --bad: #b02a1c;
+    --muted: #566780;
+}
+
+    :root:not([data-theme="dark"]) .result-summary.verdict-similar {
+        --verdict-color: #8a5a00;
+    }

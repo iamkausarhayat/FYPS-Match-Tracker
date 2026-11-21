@@ -1,0 +1,60 @@
+﻿@model MatchItemViewModel
+@{
+    var finalPercent = (int)Math.Round(Model.FinalScore);
+    var cls = SimilarityRules.VerdictFor(Model.FinalScore) switch
+    {
+        "Already Done" => "done",
+        "Similar" => "similar",
+        _ => "unique"
+    };
+}
+
+<div class="match-card">
+    <div class="d-flex align-items-start gap-3">
+        <div class="score-pill score-@cls">@finalPercent%</div>
+
+        <div class="flex-grow-1">
+            @if (Model.ProjectId.HasValue)
+            {
+                <span class="source-tag source-dept"><i class="bi bi-building"></i> Department FYP</span>
+            }
+            else
+            {
+                <span class="source-tag source-paper"><i class="bi bi-journal-text"></i> Research paper</span>
+            }
+            <h5 class="fw-bold mb-1 mt-1">@Model.Title</h5>
+            <div class="text-muted small mb-2">@Model.Detail</div>
+
+            <div class="small mb-2">
+                <span class="me-3"><i class="bi bi-lightbulb"></i> Meaning <strong>@Math.Round(Model.MeaningScore)%</strong></span>
+                <span><i class="bi bi-fonts"></i> Words <strong>@Math.Round(Model.WordScore)%</strong></span>
+            </div>
+
+            @if (Model.CommonKeywords.Count > 0)
+            {
+                <div class="mb-2">
+                    <span class="small text-muted me-1">Common keywords:</span>
+                    @foreach (var word in Model.CommonKeywords)
+                    {
+                        <span class="chip">@word</span>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.BestPassage))
+            {
+                <div class="quote">
+                    <span class="small text-muted d-block mb-1">Why it matched (best passage)</span>
+                    @Model.BestPassage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Url))
+            {
+                <a href="@Model.Url" target="_blank" rel="noopener" class="small fw-semibold text-decoration-none">
+                    Open paper <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,20 @@
+﻿@model StatusPageViewModel
+
+<section class="status-wrap">
+    <div class="status-card">
+        <div class="status-icon"><i class="bi @Model.Icon"></i></div>
+        <div class="status-code">@Model.Code</div>
+        <h1 class="h3 fw-bold">@Model.Title</h1>
+        <p class="text-muted">@Model.Message</p>
+
+        @if (!string.IsNullOrEmpty(Model.RequestId))
+        {
+            <p class="small text-muted">Request ID: <code>@Model.RequestId</code></p>
+        }
+
+        <div class="d-flex flex-wrap justify-content-center gap-3 mt-4">
+            <a href="/" class="btn-brand auto-width"><i class="bi bi-house"></i> Go to home</a>
+            <a asp-controller="Account" asp-action="Choose" class="btn-outline-brand auto-width">Choose a role</a>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,55 @@
+﻿@model AdminLoginViewModel
+@{
+    ViewData["Title"] = "Admin Login";
+}
+
+<partial name="_TopBar" />
+
+<section class="auth-wrap">
+    <div class="auth-card admin">
+        <div class="auth-head">
+            <div class="role-icon role-admin mx-auto mb-3"><i class="bi bi-shield-lock-fill"></i></div>
+            <h2 class="fw-bold">Admin Login</h2>
+            <p class="text-muted mb-0">Manage the department's FYP records.</p>
+        </div>
+
+        @if (TempData["Success"] is string successMessage)
+        {
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle"></i> @successMessage
+            </div>
+        }
+
+        <form asp-action="AdminLogin" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label fw-semibold">Username</label>
+                <input asp-for="Username" class="form-control form-control-lg" placeholder="Your admin username" autocomplete="username" />
+                <span asp-validation-for="Username" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                <div class="input-group input-group-lg">
+                    <input asp-for="Password" class="form-control" placeholder="Your password" autocomplete="current-password" />
+                    <button type="button" class="btn btn-outline-secondary" data-toggle-password="#Password" aria-label="Show password">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn-brand">Log in as Admin <i class="bi bi-box-arrow-in-right"></i></button>
+        </form>
+
+        <div class="or-divider"><span>New admin?</span></div>
+
+        <a asp-action="AdminRegister" class="btn-outline-brand">Create an admin account</a>
+        <p class="text-center text-muted small mt-2 mb-0">You need the department's access code.</p>
+
+        <div class="text-center mt-4">
+            <a asp-action="Choose" class="small text-decoration-none"><i class="bi bi-arrow-left"></i> Back to role selection</a>
+        </div>
+    </div>
+</section>

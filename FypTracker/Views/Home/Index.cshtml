@@ -1,0 +1,102 @@
+﻿@model HomeIndexViewModel
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+<section class="hero">
+    <div class="hero-blob blob-1"></div>
+    <div class="hero-blob blob-2"></div>
+
+    <div class="container">
+        <header class="site-nav">
+            <a href="/" class="brand">
+                <img src="~/images/numl-logo.png" alt="NUML logo" />
+                <span class="brand-name">
+                    NUML Islamabad
+                    <small>FYP Match Tracker</small>
+                </span>
+            </a>
+            <nav class="d-flex align-items-center gap-4">
+                <partial name="_ThemeSwitcher" />
+                <a href="#how" class="nav-link-soft d-none d-sm-inline">How it works</a>
+                <a href="/Account/Choose" class="btn-gold btn-small">Get Started</a>
+            </nav>
+        </header>
+    </div>
+
+    <div class="container hero-body">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-8">
+                <span class="brand-badge mb-4">
+                    <i class="bi bi-mortarboard"></i>
+                    Department of Computer Science
+                </span>
+
+                <h1 class="display-4 fw-bold">
+                    Is your FYP idea <span class="text-gold">already done?</span>
+                </h1>
+                <p class="lead mb-4" style="max-width: 520px; opacity: .9;">
+                    Upload your proposal. We compare it by meaning with the department's
+                    old FYPs, before you spend months building it.
+                </p>
+
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="/Account/Choose" class="btn-gold">
+                        Get Started <i class="bi bi-arrow-right"></i>
+                    </a>
+                    <a href="#how" class="btn-ghost">See how it works</a>
+                </div>
+
+                <div class="d-flex flex-wrap gap-4 mt-5">
+                    @if (Model.ProjectCount > 0)
+                    {
+                        <div class="stat"><strong>@Model.ProjectCount</strong><span>FYPs in the database</span></div>
+                    }
+                    <div class="stat"><strong>AI</strong><span>Meaning-based match</span></div>
+                    <div class="stat"><strong>3</strong><span>Clear verdicts</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="how" class="container py-5">
+    <h2 class="text-center section-title mb-2">How it works</h2>
+    <p class="text-center text-muted mb-5">Three simple steps from proposal to report.</p>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                <h5 class="fw-bold">1. Upload your proposal</h5>
+                <p class="text-muted mb-0">Upload a PDF or Word file. We read the title and description for you.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-search"></i></div>
+                <h5 class="fw-bold">2. We compare it</h5>
+                <p class="text-muted mb-0">Your idea is compared with the department's old FYPs by meaning, not just words.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="bi bi-clipboard-data"></i></div>
+                <h5 class="fw-bold">3. Get your report</h5>
+                <p class="text-muted mb-0">See a similarity percentage and a clear verdict: Unique, Similar or Already Done.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container pb-5">
+    <div class="cta-band">
+        <h3 class="fw-bold mb-2">Ready to check your idea?</h3>
+        <p class="mb-4" style="opacity: .9;">It takes less than a minute.</p>
+        <a href="/Account/Choose" class="btn-gold">Get Started <i class="bi bi-arrow-right"></i></a>
+    </div>
+</section>
+
+<footer class="text-center py-4 text-muted small">
+    &copy; 2026 NUML Islamabad &bull; Advance Programming Project
+</footer>

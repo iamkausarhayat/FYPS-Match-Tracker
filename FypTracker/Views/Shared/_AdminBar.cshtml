@@ -1,0 +1,19 @@
+﻿<header class="topbar">
+    <div class="container site-nav">
+        <a asp-controller="Admin" asp-action="Projects" class="brand">
+            <img src="~/images/numl-logo.png" alt="NUML logo" />
+            <span class="brand-name">
+                NUML Islamabad
+                <small>Admin panel</small>
+            </span>
+        </a>
+        <nav class="d-flex align-items-center gap-3">
+            <partial name="_ThemeSwitcher" />
+            <a asp-controller="Admin" asp-action="Projects" class="nav-link-soft"><i class="bi bi-folder2-open"></i> Projects</a>
+            <span class="small text-muted">@User.Identity?.Name</span>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                <button type="submit" class="nav-link-soft border-0 bg-transparent"><i class="bi bi-box-arrow-right"></i> Log out</button>
+            </form>
+        </nav>
+    </div>
+</header>

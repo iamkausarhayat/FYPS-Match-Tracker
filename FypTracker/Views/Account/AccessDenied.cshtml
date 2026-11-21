@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Access denied";
+    var page = new StatusPageViewModel
+    {
+        Code = "403",
+        Title = "Access denied",
+        Message = "You do not have permission to open this page. Admin pages are only for registered admins.",
+        Icon = "bi-shield-lock"
+    };
+}
+
+<partial name="_TopBar" />
+<partial name="_StatusCard" model="page" />

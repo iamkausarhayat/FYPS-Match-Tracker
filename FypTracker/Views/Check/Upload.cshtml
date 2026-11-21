@@ -1,0 +1,276 @@
+﻿@model CheckIdeaViewModel
+@{
+    ViewData["Title"] = "Check your idea";
+}
+
+<partial name="_TopBar" />
+
+<section class="page-hero compact">
+    <div class="container">
+        <h1 class="fw-bold mb-2">Check your FYP idea</h1>
+        <p class="lead mb-0" style="opacity: .9;">Upload your proposal, confirm the details, then press Analyze.</p>
+    </div>
+</section>
+
+<section class="container page-body">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <form asp-action="Upload" method="post" enctype="multipart/form-data" novalidate id="checkForm">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <!-- Step 1: upload -->
+                <div class="step-card">
+                    <div class="step-title"><span class="step-no">1</span> Upload your proposal</div>
+
+                    <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Choose a file to upload">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <p class="mb-1 fw-semibold mt-2">Drag and drop your file here, or click to browse</p>
+                        <p class="small text-muted mb-0">PDF, Word (.docx) or text (.txt) &bull; up to 5 MB</p>
+                    </div>
+                    <input asp-for="Document" type="file" class="d-none" accept=".pdf,.docx,.txt" />
+
+                    <div id="fileChip" class="file-chip d-none">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <div class="flex-grow-1">
+                            <div id="fileName" class="fw-semibold"></div>
+                            <div id="fileSize" class="small text-muted"></div>
+                        </div>
+                        <button type="button" id="removeFile" class="btn-icon" aria-label="Remove file">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+
+                    <div id="extractNote" class="small mt-2 text-muted" role="status"></div>
+                    <div id="fileError" class="text-danger small mt-2" role="alert"></div>
+                    <span asp-validation-for="Document" class="text-danger small"></span>
+                </div>
+
+                <!-- Step 2: details -->
+                <div class="step-card">
+                    <div class="step-title">
+                        <span class="step-no">2</span> Confirm the details
+                        <span id="autoBadge" class="badge text-bg-success d-none ms-auto">Filled from your file</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">Project title</label>
+                        <input asp-for="Title" class="form-control form-control-lg" placeholder="e.g. Smart attendance using face recognition" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold">Description</label>
+                        <textarea asp-for="Description" rows="6" class="form-control" placeholder="Explain your idea: the problem, the users, the main features and the technology."></textarea>
+                        <div class="d-flex justify-content-between">
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                            <span class="form-text ms-auto"><span id="descCount">0</span> / 3000 (minimum 50)</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-1">
+                        <label asp-for="SupervisorName" class="form-label fw-semibold"></label>
+                        <input asp-for="SupervisorName" class="form-control form-control-lg" placeholder="e.g. Dr. Ahmed Raza" />
+                        <span asp-validation-for="SupervisorName" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Step 3: analyze -->
+                <div class="step-card">
+                    <div class="step-title"><span class="step-no">3</span> Analyze</div>
+                    <p class="text-muted">Your idea is compared with the department's previous FYPs. This may take a few seconds.</p>
+                    <button type="submit" id="analyzeBtn" class="btn-brand">
+                        <i class="bi bi-cpu"></i> Analyze my idea
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</section>
+
+<!-- Shown while the server is analyzing -->
+<div id="busyOverlay" class="busy-overlay d-none" role="status" aria-live="polite">
+    <div class="busy-card">
+        <div class="spinner-border text-primary" aria-hidden="true"></div>
+        <h2 class="h5 fw-bold mt-3 mb-2">Analyzing your idea...</h2>
+        <p class="text-muted small mb-0">
+            We are comparing it with the department's FYPs by meaning.
+            The first check can take a little longer while the AI model loads.
+            Please do not close this page.
+        </p>
+    </div>
+</div>
+
+<footer class="text-center py-4 text-muted small">
+    &copy; 2026 NUML Islamabad &bull; Advance Programming Project
+</footer>
+
+@section Scripts {
+    <script>
+        (function () {
+            const zone = document.getElementById('dropZone');
+            const input = document.getElementById('Document');
+            const chip = document.getElementById('fileChip');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const removeBtn = document.getElementById('removeFile');
+            const fileError = document.getElementById('fileError');
+            const extractNote = document.getElementById('extractNote');
+            const title = document.getElementById('Title');
+            const description = document.getElementById('Description');
+            const counter = document.getElementById('descCount');
+            const badge = document.getElementById('autoBadge');
+            const form = document.getElementById('checkForm');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const overlay = document.getElementById('busyOverlay');
+            const extractUrl = '@Url.Action("ExtractText", "Check")';
+
+            const allowed = ['pdf', 'docx', 'txt'];
+            const maxBytes = 5 * 1024 * 1024;
+
+            let lastAutoTitle = '';
+            let lastAutoDescription = '';
+            let requestNumber = 0;   // purane (der se aane wale) jawab ignore karne ke liye
+
+            // Open the file picker by click or keyboard
+            zone.addEventListener('click', () => input.click());
+            zone.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+            });
+
+            // Drag and drop
+            ['dragenter', 'dragover'].forEach(name => zone.addEventListener(name, e => {
+                e.preventDefault();
+                zone.classList.add('dragging');
+            }));
+            ['dragleave', 'drop'].forEach(name => zone.addEventListener(name, e => {
+                e.preventDefault();
+                zone.classList.remove('dragging');
+            }));
+            zone.addEventListener('drop', e => {
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    handleFile();
+                }
+            });
+
+            input.addEventListener('change', handleFile);
+            removeBtn.addEventListener('click', clearFile);
+            description.addEventListener('input', updateCount);
+
+            // While analyzing: stop double clicks and show the waiting card
+            const analyzeHtml = analyzeBtn.innerHTML;
+            form.addEventListener('submit', () => {
+                analyzeBtn.disabled = true;
+                analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Analyzing...';
+                overlay.classList.remove('d-none');
+            });
+
+            // If the user comes back with the Back button, do not leave the page stuck
+            window.addEventListener('pageshow', e => {
+                if (e.persisted) {
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.innerHTML = analyzeHtml;
+                    overlay.classList.add('d-none');
+                }
+            });
+
+            function handleFile() {
+                fileError.textContent = '';
+                extractNote.textContent = '';
+                const file = input.files[0];
+                if (!file) { chip.classList.add('d-none'); return; }
+
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!allowed.includes(ext)) { return rejectFile('Only PDF, Word (.docx) or text (.txt) files are allowed.'); }
+                if (file.size === 0) { return rejectFile('The file is empty.'); }
+                if (file.size > maxBytes) { return rejectFile('The file is too big. Maximum size is 5 MB.'); }
+
+                fileName.textContent = file.name;
+                fileSize.textContent = formatSize(file.size);
+                chip.classList.remove('d-none');
+
+                extractFromServer(file);
+            }
+
+            function rejectFile(message) {
+                requestNumber++;
+                input.value = '';
+                chip.classList.add('d-none');
+                fileError.textContent = message;
+            }
+
+            function clearFile() {
+                requestNumber++;
+                input.value = '';
+                chip.classList.add('d-none');
+                fileError.textContent = '';
+                extractNote.textContent = '';
+            }
+
+            function formatSize(bytes) {
+                return bytes < 1048576
+                    ? (bytes / 1024).toFixed(1) + ' KB'
+                    : (bytes / 1048576).toFixed(2) + ' MB';
+            }
+
+            // We only overwrite a box if it is empty or still holds our own auto-filled text.
+            function canOverwrite(field, lastAuto) {
+                return !field.value.trim() || field.value === lastAuto;
+            }
+
+            // Real extraction: the server reads the PDF / Word / text file.
+            async function extractFromServer(file) {
+                const myRequest = ++requestNumber;
+                extractNote.textContent = 'Reading your file...';
+
+                try {
+                    const data = new FormData();
+                    data.append('document', file);
+                    data.append('__RequestVerificationToken',
+                        form.querySelector('input[name="__RequestVerificationToken"]').value);
+
+                    const response = await fetch(extractUrl, { method: 'POST', body: data });
+                    const result = await response.json();
+
+                    if (myRequest !== requestNumber) { return; }   // user ne dusri file chun li
+
+                    if (!result.ok) {
+                        extractNote.textContent = '';
+                        fileError.textContent = result.message;
+                        return;
+                    }
+
+                    if (canOverwrite(title, lastAutoTitle)) {
+                        lastAutoTitle = result.title;
+                        title.value = result.title;
+                    }
+
+                    if (canOverwrite(description, lastAutoDescription)) {
+                        lastAutoDescription = result.description;
+                        description.value = result.description;
+                        updateCount();
+                    }
+
+                    extractNote.textContent = 'We filled the title and description from your file. Please check them.';
+                    badge.classList.remove('d-none');
+                } catch (error) {
+                    if (myRequest !== requestNumber) { return; }
+                    extractNote.textContent = '';
+                    fileError.textContent = 'Could not read the file. Please type the title and description yourself.';
+                }
+            }
+
+            function updateCount() {
+                const length = description.value.length;
+                counter.textContent = length;
+                const good = length >= 50 && length <= 3000;
+                counter.classList.toggle('count-ok', good);
+                counter.classList.toggle('count-bad', !good);
+            }
+
+            updateCount();
+        })();
+    </script>
+}

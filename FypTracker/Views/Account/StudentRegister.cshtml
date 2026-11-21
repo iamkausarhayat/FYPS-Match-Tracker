@@ -1,0 +1,84 @@
+﻿@model StudentRegisterViewModel
+@{
+    ViewData["Title"] = "Student Registration";
+}
+
+<partial name="_TopBar" />
+
+<section class="auth-wrap">
+    <div class="auth-card wide">
+        <div class="auth-head">
+            <div class="role-icon role-student mx-auto mb-3"><i class="bi bi-person-plus-fill"></i></div>
+            <h2 class="fw-bold">Student Registration</h2>
+            <p class="text-muted mb-0">Create your account in less than a minute.</p>
+        </div>
+
+        <form asp-action="StudentRegister" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FullName" class="form-label fw-semibold"></label>
+                    <input asp-for="FullName" class="form-control form-control-lg" placeholder="e.g. Ayesha Khan" autocomplete="name" />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="RollNumber" class="form-label fw-semibold"></label>
+                    <input asp-for="RollNumber" class="form-control form-control-lg" placeholder="e.g. BSCS-22-001" />
+                    <span asp-validation-for="RollNumber" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label fw-semibold"></label>
+                    <input asp-for="Email" class="form-control form-control-lg" placeholder="you@numl.edu.pk" autocomplete="email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Department" class="form-label fw-semibold"></label>
+                    <select asp-for="Department" class="form-select form-select-lg">
+                        <option value="">Select department</option>
+                        <option>Computer Science</option>
+                        <option>Software Engineering</option>
+                        <option>Artificial Intelligence</option>
+                        <option>Data Science</option>
+                    </select>
+                    <span asp-validation-for="Department" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="Password" class="form-label fw-semibold"></label>
+                    <div class="input-group input-group-lg">
+                        <input asp-for="Password" class="form-control" placeholder="Create a password" autocomplete="new-password" />
+                        <button type="button" class="btn btn-outline-secondary" data-toggle-password="#Password" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">At least 8 characters, including a number.</div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
+                    <div class="input-group input-group-lg">
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Repeat the password" autocomplete="new-password" />
+                        <button type="button" class="btn btn-outline-secondary" data-toggle-password="#ConfirmPassword" aria-label="Show password">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-brand mt-4">Create account <i class="bi bi-person-check"></i></button>
+        </form>
+
+        <div class="text-center mt-4">
+            <span class="text-muted small">Already registered?</span>
+            <a asp-action="StudentLogin" class="small fw-semibold text-decoration-none">Log in</a>
+            &nbsp;&bull;&nbsp;
+            <a asp-action="Choose" class="small text-decoration-none">Back to role selection</a>
+        </div>
+    </div>
+</section>
