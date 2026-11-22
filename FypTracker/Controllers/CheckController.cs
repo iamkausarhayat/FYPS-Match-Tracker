@@ -16,12 +16,14 @@ namespace FypTracker.Controllers
         private readonly SimilarityEngine _engine;
         private readonly PaperSearchService _papers;
         private readonly ILogger<CheckController> _logger;
+        private readonly OcrService _ocr;
 
-        public CheckController(SimilarityEngine engine, PaperSearchService papers, ILogger<CheckController> logger)
+        public CheckController(SimilarityEngine engine, PaperSearchService papers, ILogger<CheckController> logger, OcrService ocr)
         {
             _engine = engine;
             _papers = papers;
             _logger = logger;
+            _ocr = ocr;
         }
 
         // GET: /Check/Upload
@@ -45,19 +47,12 @@ namespace FypTracker.Controllers
 
             try
             {
-                var raw = await DocumentTextExtractor.ReadTextAsync(document!);
-                var extracted = DocumentTextExtractor.Split(raw, document!.FileName);
+                var result = await DocumentTextExtractor.ExtractAsync(
+                    document!, _ocr, "Please type the title and description yourself.");
 
-                if (string.IsNullOrWhiteSpace(extracted.Description))
-                {
-                    return Json(new
-                    {
-                        ok = false,
-                        message = "No readable text was found (a scanned PDF is just a picture). Please type the title and description yourself."
-                    });
-                }
-
-                return Json(new { ok = true, title = extracted.Title, description = extracted.Description });
+                return result.Ok
+                    ? Json(new { ok = true, title = result.Title, description = result.Description, note = result.Message })
+                    : Json(new { ok = false, message = result.Message });
             }
             catch (Exception ex)
             {

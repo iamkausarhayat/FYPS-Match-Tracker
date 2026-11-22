@@ -19,6 +19,22 @@
         <div class="col-lg-8">
             <div class="step-card">
 
+                <!-- Optional: file se title aur abstract khud bhar do. Ye form ke BAHAR hai, is liye file save nahi hoti. -->
+                <div class="step-title"><span class="step-no"><i class="bi bi-magic"></i></span> Fill from a file (optional)</div>
+
+                <div id="adminDropZone" class="drop-zone" tabindex="0" role="button" aria-label="Choose a file to read">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <p class="mb-1 fw-semibold mt-2">Drag and drop a report, or click to browse</p>
+                    <p class="small text-muted mb-0">PDF, Word (.docx) or text (.txt) &bull; up to 5 MB &bull; scanned PDFs are read with OCR</p>
+                </div>
+                <input id="adminFile" type="file" class="d-none" accept=".pdf,.docx,.txt" />
+
+                <div id="adminExtractNote" class="small mt-2 text-muted" role="status"></div>
+                <div id="adminFileError" class="text-danger small mt-2" role="alert"></div>
+            </div>
+
+            <div class="step-card">
+
                 <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" method="post" novalidate>
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
                     <input type="hidden" asp-for="Id" />
@@ -98,5 +114,87 @@
 
         description.addEventListener('input', updateCount);
         updateCount();
+
+        // ---------- File se title aur abstract nikalna ----------
+        (function () {
+            const zone = document.getElementById('adminDropZone');
+            const input = document.getElementById('adminFile');
+            const note = document.getElementById('adminExtractNote');
+            const error = document.getElementById('adminFileError');
+            const title = document.getElementById('Title');
+            const form = document.querySelector('form[method="post"]');
+            const extractUrl = '@Url.Action("ExtractText", "Admin")';
+            const allowed = ['pdf', 'docx', 'txt'];
+            const maxBytes = 5 * 1024 * 1024;
+            let requestNumber = 0;
+
+            zone.addEventListener('click', () => input.click());
+            zone.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+            });
+            ['dragenter', 'dragover'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); zone.classList.add('dragging'); }));
+            ['dragleave', 'drop'].forEach(n => zone.addEventListener(n, e => { e.preventDefault(); zone.classList.remove('dragging'); }));
+            zone.addEventListener('drop', e => {
+                if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; handleFile(); }
+            });
+            input.addEventListener('change', handleFile);
+
+            function handleFile() {
+                error.textContent = '';
+                note.textContent = '';
+                const file = input.files[0];
+                if (!file) { return; }
+
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!allowed.includes(ext)) { error.textContent = 'Only PDF, Word (.docx) or text (.txt) files are allowed.'; input.value = ''; return; }
+                if (file.size === 0) { error.textContent = 'The file is empty.'; input.value = ''; return; }
+                if (file.size > maxBytes) { error.textContent = 'The file is too big. Maximum size is 5 MB.'; input.value = ''; return; }
+
+                extract(file);
+            }
+
+            async function extract(file) {
+                const mine = ++requestNumber;
+                note.textContent = 'Reading your file... (a scanned PDF can take up to a minute)';
+
+                try {
+                    const data = new FormData();
+                    data.append('document', file);
+                    data.append('__RequestVerificationToken',
+                        form.querySelector('input[name="__RequestVerificationToken"]').value);
+
+                    const response = await fetch(extractUrl, { method: 'POST', body: data });
+                    const result = await response.json();
+
+                    if (mine !== requestNumber) { return; }
+
+                    if (!result.ok) {
+                        note.textContent = '';
+                        error.textContent = result.message;
+                        input.value = '';
+                        return;
+                    }
+
+                    // Agar form mein pehle se kuch likha hai to poochho, chupke se mita mat do
+                    const hasText = title.value.trim() || description.value.trim();
+                    if (hasText && !confirm('Replace the current title and description with the text from the file?')) {
+                        note.textContent = 'Nothing was changed.';
+                        input.value = '';
+                        return;
+                    }
+
+                    title.value = result.title;
+                    description.value = result.description;
+                    updateCount();
+                    note.textContent = result.note;
+                } catch (e) {
+                    if (mine !== requestNumber) { return; }
+                    note.textContent = '';
+                    error.textContent = 'Could not read the file. Please type or paste the text yourself.';
+                }
+
+                input.value = '';
+            }
+        })();
     </script>
 }

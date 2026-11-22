@@ -253,7 +253,7 @@
                         updateCount();
                     }
 
-                    extractNote.textContent = 'We filled the title and description from your file. Please check them.';
+                    extractNote.textContent = result.note || 'We filled the title and description from your file. Please check them.';
                     badge.classList.remove('d-none');
                 } catch (error) {
                     if (myRequest !== requestNumber) { return; }

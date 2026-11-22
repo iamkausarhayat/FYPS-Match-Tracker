@@ -12,10 +12,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IProjectService, DbProjectService>();   //"Jab koi IProjectService maange, DbProjectService de do"
 builder.Services.AddSingleton<IEmbedder, LocalEmbedderService>();  //AI model wala helper, poori app mein ek hi
 builder.Services.AddSingleton<MeaningScorer>();    //Meaning score nikalne wala, ek hi
+builder.Services.AddSingleton<OcrService>();       //Scanned PDF parhne wala (OCR), ek hi
 builder.Services.AddScoped<SimilarityEngine>(); //Poora compare karne wala, har request ke liye naya
 
 // Crossref (research papers): ek tayyar HttpClient jis mein address, timeout aur naam pehle se set hain
-builder.Services.AddHttpClient<PaperSearchService>(client =>  
+builder.Services.AddHttpClient<PaperSearchService>(client =>
 {
     client.BaseAddress = new Uri("https://api.crossref.org/");
     client.Timeout = TimeSpan.FromSeconds(8);   // 8 second se zyada intezar nahi
@@ -24,7 +25,7 @@ builder.Services.AddHttpClient<PaperSearchService>(client =>
 
 // Login: ek cookie jis mein user ka naam aur role hota hai
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>   
+    .AddCookie(options =>
     {
         options.LoginPath = "/Account/AdminLogin";          // bina login wale yahan bheje jate hain
         options.AccessDeniedPath = "/Account/AccessDenied"; // galat role wale yahan bheje jate hain

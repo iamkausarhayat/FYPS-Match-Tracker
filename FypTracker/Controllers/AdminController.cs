@@ -10,12 +10,14 @@ namespace FypTracker.Controllers
     {
         private readonly IProjectService _projects;
         private readonly ILogger<AdminController> _logger;
+        private readonly OcrService _ocr;
 
         // The framework hands us the helpers (Dependency Injection).
-        public AdminController(IProjectService projects, ILogger<AdminController> logger)
+        public AdminController(IProjectService projects, ILogger<AdminController> logger, OcrService ocr)
         {
             _projects = projects;
             _logger = logger;
+            _ocr = ocr;
         }
 
         // GET: /Admin/Projects?q=...&department=...
@@ -190,6 +192,38 @@ namespace FypTracker.Controllers
             }
 
             return RedirectToAction(nameof(Projects));
+        }
+
+        // POST: /Admin/ExtractText
+        // Admin form ka JavaScript file chunte hi yahan bhejta hai. Hum title aur abstract nikal kar wapas dete hain.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExtractText(IFormFile? document)
+        {
+            var fileError = DocumentTextExtractor.Validate(document);
+            if (fileError != null)
+            {
+                return Json(new { ok = false, message = fileError });
+            }
+
+            try
+            {
+                var result = await DocumentTextExtractor.ExtractAsync(
+                    document!, _ocr, "Please type or paste the title and abstract yourself.");
+
+                return result.Ok
+                    ? Json(new { ok = true, title = result.Title, description = result.Description, note = result.Message })
+                    : Json(new { ok = false, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Admin could not read uploaded file {FileName}", document?.FileName);
+                return Json(new
+                {
+                    ok = false,
+                    message = "This file could not be read. It may be damaged or password protected. Please type or paste the text yourself."
+                });
+            }
         }
 
         // ---------- helpers ----------
