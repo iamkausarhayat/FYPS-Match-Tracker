@@ -165,8 +165,10 @@ namespace FypTracker.Controllers
             }
 
             // Secret code configuration se aata hai. Agar wahan khali hai to koi admin nahi ban sakta.
-            var secretCode = _config["AdminAccessCode"];
-            if (string.IsNullOrWhiteSpace(secretCode) || model.AccessCode != secretCode)
+            // Ek ya zyada code ho sakte hain, comma se alag likhein: "code1,code2"
+            var validCodes = (_config["AdminAccessCode"] ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (validCodes.Length == 0 || !validCodes.Contains(model.AccessCode.Trim()))
             {
                 ModelState.AddModelError(nameof(model.AccessCode), "Invalid admin access code.");
                 return View(model);

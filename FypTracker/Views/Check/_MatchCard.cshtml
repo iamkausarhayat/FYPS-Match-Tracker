@@ -49,6 +49,15 @@
                 </div>
             }
 
+            @if (Model.ProjectId.HasValue)
+            {
+                <button type="button" class="btn-outline-brand auto-width view-fyp no-print mt-2"
+                        style="padding: .4rem 1.1rem; font-size: .88rem;"
+                        data-project-id="@Model.ProjectId">
+                    <i class="bi bi-eye"></i> View full FYP
+                </button>
+            }
+
             @if (!string.IsNullOrEmpty(Model.Url))
             {
                 <a href="@Model.Url" target="_blank" rel="noopener" class="small fw-semibold text-decoration-none">

@@ -8,7 +8,7 @@
 <section class="page-hero compact">
     <div class="container">
         <h1 class="fw-bold mb-2">Check your FYP idea</h1>
-        <p class="lead mb-0" style="opacity: .9;">Upload your proposal, confirm the details, then press Analyze.</p>
+        <p class="lead mb-0" style="opacity: .9;">Upload your proposal (optional) or just type your idea, then press Analyze.</p>
     </div>
 </section>
 
@@ -21,7 +21,11 @@
 
                 <!-- Step 1: upload -->
                 <div class="step-card">
-                    <div class="step-title"><span class="step-no">1</span> Upload your proposal</div>
+                    <div class="step-title">
+                        <span class="step-no">1</span> Upload your proposal
+                        <span class="badge text-bg-secondary ms-2">Optional</span>
+                    </div>
+                    <p class="small text-muted">No file? You can skip this step and type your title and description in step 2.</p>
 
                     <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Choose a file to upload">
                         <i class="bi bi-cloud-arrow-up"></i>
@@ -49,7 +53,7 @@
                 <!-- Step 2: details -->
                 <div class="step-card">
                     <div class="step-title">
-                        <span class="step-no">2</span> Confirm the details
+                        <span class="step-no">2</span> Enter the details
                         <span id="autoBadge" class="badge text-bg-success d-none ms-auto">Filled from your file</span>
                     </div>
 

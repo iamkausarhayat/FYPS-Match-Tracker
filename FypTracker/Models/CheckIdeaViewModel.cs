@@ -4,7 +4,7 @@ namespace FypTracker.Models
 {
     public class CheckIdeaViewModel
     {
-        [Required(ErrorMessage = "Please upload your proposal file.")]
+        // File OPTIONAL hai: student sirf title aur description likh kar bhi check kar sakta hai
         [Display(Name = "Proposal file")]
         public IFormFile? Document { get; set; }
 

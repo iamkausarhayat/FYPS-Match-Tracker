@@ -1,9 +1,45 @@
 ﻿@model SimilarityResultViewModel
+@using System.Text.Json
 @{
     ViewData["Title"] = "Your result";
     var top = Model.TopMatch;
     var sources = Model.PaperMatches.Any() ? "previous FYPs and research papers" : "previous FYPs";
     var papersNote = TempData["PapersNote"] as string;
+
+    // Yeh data "Download PDF" button ke liye page mein rakha jata hai (browser PDF khud banata hai)
+    var reportJson = JsonSerializer.Serialize(new
+    {
+        title = Model.Title,
+        supervisor = Model.SupervisorName,
+        fileName = Model.FileName,
+        verdict = Model.Verdict,
+        verdictClass = Model.VerdictClass,
+        percent = Model.OverallPercent,
+        advice = Model.Advice,
+        meaningWeight = (int)Math.Round(SimilarityRules.MeaningWeight * 100),
+        wordWeight = (int)Math.Round(SimilarityRules.WordWeight * 100),
+        top = top == null ? null : new
+        {
+            title = top.Title,
+            meaning = Math.Round(top.MeaningScore),
+            word = Math.Round(top.WordScore),
+            overall = Math.Round(top.FinalScore)
+        },
+        matches = Model.DepartmentMatches
+            .OrderByDescending(m => m.FinalScore)
+            .Take(3)
+            .Select(m => new
+            {
+                title = m.Title,
+                detail = m.Detail,
+                meaning = Math.Round(m.MeaningScore),
+                word = Math.Round(m.WordScore),
+                overall = Math.Round(m.FinalScore),
+                keywords = m.CommonKeywords,
+                passage = m.BestPassage
+            }),
+        papers = Model.Papers.Select(p => new { title = p.Title, authors = p.Authors, year = p.Year, url = p.Url })
+    });
 }
 
 <partial name="_TopBar" />
@@ -36,7 +72,13 @@
                     <div class="col-md-8">
                         <span class="verdict-pill">@Model.Verdict</span>
                         <h3 class="fw-bold mt-2 mb-1">@Model.Title</h3>
-                        <p class="text-muted small mb-3">Supervisor: @Model.SupervisorName &bull; File: @Model.FileName</p>
+                        <p class="text-muted small mb-3">
+                            Supervisor: @Model.SupervisorName
+                            @if (!string.IsNullOrWhiteSpace(Model.FileName))
+                            {
+                                <span>&bull; File: @Model.FileName</span>
+                            }
+                        </p>
                         <p class="mb-3">@Model.Advice</p>
 
                         @if (top != null)
@@ -143,7 +185,7 @@
                 <div class="fw-semibold mb-2">What next?</div>
                 <div class="d-flex flex-wrap gap-3">
                     <a asp-action="Upload" class="btn-brand auto-width"><i class="bi bi-arrow-repeat"></i> Check another idea</a>
-                    <button type="button" id="printBtn" class="btn-outline-brand auto-width"><i class="bi bi-printer"></i> Print or save as PDF</button>
+                    <button type="button" id="downloadPdfBtn" class="btn-outline-brand auto-width"><i class="bi bi-file-earmark-arrow-down"></i> Download PDF</button>
                     <a href="/" class="btn-outline-brand auto-width"><i class="bi bi-house"></i> Back to home</a>
                 </div>
             </div>
@@ -152,30 +194,313 @@
     </div>
 </section>
 
+<script id="reportData" type="application/json">@Html.Raw(reportJson)</script>
+
+<!-- Pop-up: poora FYP dekhne ke liye (data /api/projects/{id} se aata hai) -->
+<div class="modal fade" id="fypModal" tabindex="-1" aria-labelledby="fypModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fypModalTitle"><i class="bi bi-building"></i> Department FYP</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="fypLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" aria-hidden="true"></div>
+                    <div class="small text-muted mt-2">Loading the full FYP...</div>
+                </div>
+                <div id="fypError" class="alert alert-danger d-none" role="alert"></div>
+                <div id="fypContent" class="d-none">
+                    <h4 id="fypTitle" class="fw-bold mb-2 text-break"></h4>
+                    <div id="fypMeta" class="mb-3"></div>
+                    <h6 class="fw-bold">What this FYP is about</h6>
+                    <p id="fypDescription" class="mb-0 text-break" style="white-space: pre-line;"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-outline-brand auto-width" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <footer class="text-center py-4 text-muted small">
     &copy; 2026 NUML Islamabad &bull; Advance Programming Project
 </footer>
 
 @section Scripts {
+    <script src="~/lib/jspdf/jspdf.umd.min.js"></script>
     <script>
-        (function () {
-            const root = document.documentElement;
-            let savedTheme = null;
+        // ---------- PDF banana (browser mein, jsPDF se) ----------
+        // data = server ka bheja hua result (reportData JSON)
+        function buildReportPdf(data, JsPDF) {
+            const doc = new JsPDF({ unit: 'pt', format: 'a4' });
+            const W = doc.internal.pageSize.getWidth();
+            const H = doc.internal.pageSize.getHeight();
+            const M = 44;                 // margin
+            const bottom = H - 56;        // is se neeche text nahi jata
+            const contentW = W - 2 * M;
+            let y = 0;
 
-            // Reports are printed on white paper, so switch to the light theme while printing
-            window.addEventListener('beforeprint', function () {
-                savedTheme = root.getAttribute('data-theme');
-                root.setAttribute('data-theme', 'light');
-                root.setAttribute('data-bs-theme', 'light');
+            const INK = [30, 41, 59];
+            const MUTED = [100, 116, 139];
+            const NAVY = [11, 42, 107];
+            const verdictColors = { unique: [22, 128, 61], similar: [180, 83, 9], done: [185, 28, 28] };
+            const accent = verdictColors[data.verdictClass] || verdictColors.unique;
+
+            // PDF ke standard font sirf English/Latin huroof dikha sakte hain, baqi ko '?' bana dete hain
+            function clean(text) {
+                return String(text == null ? '' : text)
+                    .replace(/[‘’]/g, "'")
+                    .replace(/[“”]/g, '"')
+                    .replace(/[–—]/g, '-')
+                    .replace(/•/g, '|')
+                    .replace(/\s+/g, ' ')
+                    .replace(/[^\x20-\x7E\xA0-\xFF]/g, '?')
+                    .trim();
+            }
+
+            function ensure(height) {
+                if (y + height > bottom) { doc.addPage(); y = M; }
+            }
+
+            function write(text, o) {
+                o = o || {};
+                const size = o.size || 10;
+                const indent = o.indent || 0;
+                const color = o.color || INK;
+                doc.setFont('helvetica', o.style || 'normal');
+                doc.setFontSize(size);
+                doc.setTextColor(color[0], color[1], color[2]);
+                const lines = doc.splitTextToSize(clean(text), contentW - indent);
+                const lineHeight = size * 1.35;
+                lines.forEach(function (line) {
+                    ensure(lineHeight);
+                    doc.text(line, M + indent, y + size);
+                    if (o.url) { doc.link(M + indent, y, contentW - indent, lineHeight, { url: o.url }); }
+                    y += lineHeight;
+                });
+                y += (o.after == null ? 4 : o.after);
+            }
+
+            function heading(text) {
+                ensure(40);
+                y += 8;
+                write(text, { size: 13, style: 'bold', color: NAVY, after: 3 });
+                doc.setDrawColor(203, 213, 225);
+                doc.setLineWidth(0.8);
+                doc.line(M, y, W - M, y);
+                y += 10;
+            }
+
+            function bar(label, note, value) {
+                ensure(30);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.setTextColor(INK[0], INK[1], INK[2]);
+                doc.text(clean(label), M, y + 10);
+                doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+                doc.setFontSize(9);
+                doc.text(clean(note), M + doc.getTextWidth(clean(label)) * 1.08 + 6, y + 10);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
+                doc.setTextColor(INK[0], INK[1], INK[2]);
+                doc.text(value + '%', W - M, y + 10, { align: 'right' });
+                y += 16;
+                doc.setFillColor(226, 232, 240);
+                doc.roundedRect(M, y, contentW, 6, 3, 3, 'F');
+                const filled = Math.max(0, Math.min(100, value)) / 100 * contentW;
+                if (filled > 1) {
+                    doc.setFillColor(accent[0], accent[1], accent[2]);
+                    doc.roundedRect(M, y, filled, 6, 3, 3, 'F');
+                }
+                y += 16;
+            }
+
+            // ----- Top band -----
+            doc.setFillColor(NAVY[0], NAVY[1], NAVY[2]);
+            doc.rect(0, 0, W, 72, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(19);
+            doc.text('FYP Match Tracker', M, 33);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(11);
+            doc.text('Similarity Report', M, 54);
+            const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            doc.setFontSize(10);
+            doc.text(today, W - M, 54, { align: 'right' });
+            y = 72 + 26;
+
+            // ----- Title, supervisor, file -----
+            write(data.title, { size: 16, style: 'bold', after: 4 });
+            write('Supervisor: ' + data.supervisor, { size: 10, color: MUTED, after: 1 });
+            if (data.fileName) { write('File: ' + data.fileName, { size: 10, color: MUTED, after: 1 }); }
+            y += 10;
+
+            // ----- Verdict box -----
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            const adviceLines = doc.splitTextToSize(clean(data.advice), contentW - 140);
+            const boxHeight = Math.max(78, 44 + adviceLines.length * 13 + 14);
+            ensure(boxHeight + 10);
+            doc.setDrawColor(accent[0], accent[1], accent[2]);
+            doc.setLineWidth(1.5);
+            doc.roundedRect(M, y, contentW, boxHeight, 8, 8, 'S');
+            doc.setTextColor(accent[0], accent[1], accent[2]);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(30);
+            doc.text(data.percent + '%', M + 18, y + 46);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text('similar', M + 18, y + 62);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.text(clean(data.verdict), M + 122, y + 28);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.setTextColor(INK[0], INK[1], INK[2]);
+            doc.text(adviceLines, M + 122, y + 46);
+            y += boxHeight + 18;
+
+            // ----- Score breakdown -----
+            if (data.top) {
+                bar('Meaning match', '(' + data.meaningWeight + '% of the score)', data.top.meaning);
+                bar('Word match', '(' + data.wordWeight + '% of the score)', data.top.word);
+                write('Final score = ' + data.meaningWeight + '% x Meaning + ' + data.wordWeight + '% x Words = ' +
+                      (data.meaningWeight / 100) + ' x ' + data.top.meaning + ' + ' + (data.wordWeight / 100) + ' x ' + data.top.word +
+                      ' = ' + data.top.overall + '%', { size: 9, color: MUTED, after: 2 });
+                write('Closest match: ' + data.top.title, { size: 9, color: MUTED, after: 2 });
+            }
+
+            // ----- Department FYPs -----
+            heading('Closest department FYPs');
+            if (data.matches.length === 0) {
+                write('No department projects were available to compare with.', { color: MUTED });
+            }
+            data.matches.forEach(function (m, index) {
+                ensure(80);
+                write((index + 1) + '. ' + m.title, { size: 11, style: 'bold', after: 2 });
+                write(m.detail, { size: 9, color: MUTED, after: 2 });
+                write('Overall ' + m.overall + '%   |   Meaning ' + m.meaning + '%   |   Words ' + m.word + '%',
+                      { size: 9, style: 'bold', color: accent, after: 3 });
+                if (m.keywords && m.keywords.length) {
+                    write('Common keywords: ' + m.keywords.join(', '), { size: 9, after: 3 });
+                }
+                if (m.passage) {
+                    write('Why it matched: "' + m.passage + '"', { size: 9, style: 'italic', color: MUTED, indent: 10, after: 3 });
+                }
+                y += 4;
+                if (y + 8 <= bottom) {   // page ke bilkul end par ho to line nahi khenchte
+                    doc.setDrawColor(226, 232, 240);
+                    doc.setLineWidth(0.6);
+                    doc.line(M, y, W - M, y);
+                }
+                y += 12;
             });
-            window.addEventListener('afterprint', function () {
-                if (savedTheme) {
-                    root.setAttribute('data-theme', savedTheme);
-                    root.setAttribute('data-bs-theme', savedTheme);
+
+            // ----- Research papers -----
+            if (data.papers.length > 0) {
+                heading('Related research papers');
+                write('Found with Crossref using the main keywords of your idea. Shown for reading only; no percentage is calculated.',
+                      { size: 9, color: MUTED, after: 8 });
+                data.papers.forEach(function (p) {
+                    ensure(50);
+                    write(p.title, { size: 10, style: 'bold', after: 1 });
+                    const who = [p.authors, p.year].filter(Boolean).join('  |  ');
+                    if (who) { write(who, { size: 9, color: MUTED, after: 1 }); }
+                    if (p.url) { write(p.url, { size: 8, color: [37, 99, 235], url: p.url, after: 8 }); }
+                });
+            }
+
+            // ----- Footer on every page -----
+            const pages = doc.getNumberOfPages();
+            for (let i = 1; i <= pages; i++) {
+                doc.setPage(i);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(8);
+                doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
+                doc.text('Generated by FYP Match Tracker  |  NUML Islamabad', M, H - 28);
+                doc.text('Page ' + i + ' of ' + pages, W - M, H - 28, { align: 'right' });
+            }
+
+            return doc;
+        }
+
+        (function () {
+            // ---------- Download PDF ----------
+            const downloadBtn = document.getElementById('downloadPdfBtn');
+
+            downloadBtn.addEventListener('click', function () {
+                if (!window.jspdf || !window.jspdf.jsPDF) {
+                    alert('The PDF tool could not be loaded. Please refresh the page and try again.');
+                    return;
+                }
+
+                try {
+                    const data = JSON.parse(document.getElementById('reportData').textContent);
+                    const doc = buildReportPdf(data, window.jspdf.jsPDF);
+                    const slug = String(data.title || 'idea').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+                    doc.save('FYP-report-' + (slug || 'idea') + '.pdf');   // seedha download hota hai
+                } catch (error) {
+                    console.error(error);
+                    alert('The PDF could not be created. Please try again.');
                 }
             });
 
-            document.getElementById('printBtn').addEventListener('click', function () { window.print(); });
+            // ---------- View full FYP (pop-up) ----------
+            const modalElement = document.getElementById('fypModal');
+            const loading = document.getElementById('fypLoading');
+            const errorBox = document.getElementById('fypError');
+            const content = document.getElementById('fypContent');
+            const titleBox = document.getElementById('fypTitle');
+            const metaBox = document.getElementById('fypMeta');
+            const descriptionBox = document.getElementById('fypDescription');
+            const apiBase = '@Url.Content("~/api/projects")';
+            const fypModal = new bootstrap.Modal(modalElement);
+            let requestNumber = 0;   // purana jawab der se aaye to ignore karne ke liye
+
+            function addChip(text) {
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.textContent = text;   // textContent: data HTML ban kar nahi chalta (safe)
+                metaBox.appendChild(chip);
+            }
+
+            document.addEventListener('click', async function (event) {
+                const button = event.target.closest('.view-fyp');
+                if (!button) { return; }
+
+                const mine = ++requestNumber;
+                loading.classList.remove('d-none');
+                errorBox.classList.add('d-none');
+                content.classList.add('d-none');
+                fypModal.show();
+
+                try {
+                    const response = await fetch(apiBase + '/' + encodeURIComponent(button.getAttribute('data-project-id')),
+                        { headers: { 'Accept': 'application/json' } });
+
+                    if (!response.ok) { throw new Error('Status ' + response.status); }
+                    const project = await response.json();
+                    if (mine !== requestNumber) { return; }
+
+                    titleBox.textContent = project.title;
+                    descriptionBox.textContent = project.description;
+                    metaBox.innerHTML = '';
+                    addChip(project.department);
+                    addChip(String(project.year));
+                    addChip('Supervisor: ' + project.supervisorName);
+
+                    loading.classList.add('d-none');
+                    content.classList.remove('d-none');
+                } catch (error) {
+                    if (mine !== requestNumber) { return; }
+                    loading.classList.add('d-none');
+                    errorBox.textContent = 'This FYP could not be loaded. It may have been removed. Please try again.';
+                    errorBox.classList.remove('d-none');
+                }
+            });
         })();
     </script>
 }

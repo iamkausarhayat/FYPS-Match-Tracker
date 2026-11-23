@@ -70,11 +70,15 @@ namespace FypTracker.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upload(CheckIdeaViewModel model)
         {
-            // Browser par bharosa nahi: file server par dobara check hoti hai
-            var fileError = ValidateFile(model.Document);
-            if (fileError != null)
+            // File optional hai. Agar student ne file di hai tabhi check karo
+            // (browser par bharosa nahi: file server par dobara check hoti hai)
+            if (model.Document != null)
             {
-                ModelState.AddModelError(nameof(model.Document), fileError);
+                var fileError = ValidateFile(model.Document);
+                if (fileError != null)
+                {
+                    ModelState.AddModelError(nameof(model.Document), fileError);
+                }
             }
 
             if (!ModelState.IsValid)
@@ -84,7 +88,8 @@ namespace FypTracker.Controllers
 
             try
             {
-                var fileName = Path.GetFileName(model.Document!.FileName);
+                // File na ho to naam khali rehta hai (result page par "File:" nahi dikhta)
+                var fileName = model.Document != null ? Path.GetFileName(model.Document.FileName) : string.Empty;
                 var title = model.Title.Trim();
                 var description = model.Description.Trim();
 
