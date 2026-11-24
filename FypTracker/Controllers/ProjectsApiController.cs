@@ -116,7 +116,11 @@ namespace FypTracker.Controllers
                 Description = p.Description,
                 Department = p.Department,
                 SupervisorName = p.SupervisorName,
-                Year = p.Year
+                Year = p.Year,
+                University = p.University,
+                SourceUrl = p.SourceUrl,
+                Area = p.Area,
+                IsTitleOnly = p.IsTitleOnly
             };
         }
 

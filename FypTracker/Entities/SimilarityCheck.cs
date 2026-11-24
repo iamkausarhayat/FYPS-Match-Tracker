@@ -13,7 +13,8 @@ namespace FypTracker.Entities
         [Required, StringLength(3000)]
         public string Description { get; set; } = string.Empty;
 
-        [Required, StringLength(60)]
+        // Optional for the student: an empty text is saved when it was not given
+        [StringLength(60)]
         public string SupervisorName { get; set; } = string.Empty;
 
         [StringLength(260)]
@@ -25,6 +26,14 @@ namespace FypTracker.Entities
         public string Verdict { get; set; } = string.Empty;    // Unique, Similar or Already Done
 
         public DateTime CheckedAt { get; set; } = DateTime.UtcNow;
+
+        // Coverage: how many projects / universities this check was compared with
+        public int ComparedProjectCount { get; set; }
+        public int ComparedUniversityCount { get; set; }
+
+        // The suggestion box (headline, message, tips) saved as JSON, so the result page
+        // shows the same text every time. Empty for old checks.
+        public string? SuggestionJson { get; set; }
 
         // Optional foreign key: empty means the check was made by a guest
         public int? UserId { get; set; }

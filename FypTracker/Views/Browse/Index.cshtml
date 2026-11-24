@@ -1,0 +1,153 @@
+﻿@model BrowseViewModel
+@{
+    ViewData["Title"] = "Browse projects";
+
+    // Filter bachaye hue page badalne ke links
+    string PageUrl(int page) => Url.Action("Index", "Browse", new
+    {
+        q = Model.Query,
+        university = Model.University,
+        year = Model.Year,
+        area = Model.Area,
+        awardsOnly = Model.AwardsOnly ? (bool?)true : null,
+        page = page > 1 ? page : (int?)null
+    })!;
+}
+
+<partial name="_TopBar" />
+
+<section class="page-hero compact">
+    <div class="container">
+        <h1 class="fw-bold mb-2">Browse FYP projects</h1>
+        <p class="lead mb-0" style="opacity: .9;">
+            Search the final year projects we have collected from universities. Open any project to see the original page.
+        </p>
+    </div>
+</section>
+
+<section class="container page-body">
+
+    @if (Model.Error != null)
+    {
+        <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-circle"></i> @Model.Error</div>
+    }
+
+    <!-- Search and filters -->
+    <div class="step-card">
+        <form method="get" asp-controller="Browse" asp-action="Index" class="row g-2 align-items-end">
+            <div class="col-lg-12">
+                <label for="q" class="form-label fw-semibold">Search</label>
+                <input id="q" type="search" name="q" value="@Model.Query" maxlength="100"
+                       class="form-control form-control-lg" placeholder="e.g. attendance, crop price, chatbot" />
+            </div>
+
+            <div class="col-md-4 col-lg-3">
+                <label for="university" class="form-label fw-semibold small mb-1">University</label>
+                <select id="university" name="university" class="form-select">
+                    <option value="">All universities</option>
+                    @foreach (var u in Model.Universities)
+                    {
+                        <option value="@u.Name" selected="@(Model.University == u.Name)">@u.Name (@u.Count)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4 col-lg-2">
+                <label for="year" class="form-label fw-semibold small mb-1">Year</label>
+                <select id="year" name="year" class="form-select">
+                    <option value="">All years</option>
+                    @foreach (var y in Model.Years)
+                    {
+                        <option value="@y" selected="@(Model.Year == y)">@y</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-4 col-lg-3">
+                <label for="area" class="form-label fw-semibold small mb-1">Area</label>
+                <select id="area" name="area" class="form-select">
+                    <option value="">All areas</option>
+                    @foreach (var a in Model.Areas)
+                    {
+                        <option value="@a.Name" selected="@(Model.Area == a.Name)">@a.Name (@a.Count)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-6 col-lg-2">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="awardsOnly" name="awardsOnly" value="true" @(Model.AwardsOnly ? "checked" : null) />
+                    <label class="form-check-label small" for="awardsOnly"><i class="bi bi-trophy"></i> Award winners only</label>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-2 d-flex gap-2">
+                <button type="submit" class="btn-brand" aria-label="Search"><i class="bi bi-search"></i> Search</button>
+                <a asp-action="Index" class="btn-outline-brand" aria-label="Reset filters"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results -->
+    @if (Model.Error == null)
+    {
+        <p class="text-muted mb-3">
+            @if (Model.Total == 0)
+            {
+                <span>No projects found.</span>
+            }
+            else
+            {
+                <span><strong>@Model.Total</strong> @(Model.Total == 1 ? "project" : "projects") found
+                    @if (Model.TotalPages > 1) { <span> &bull; page @Model.Page of @Model.TotalPages</span> }
+                </span>
+            }
+        </p>
+
+        @if (Model.Items.Count == 0)
+        {
+            <div class="step-card text-center text-muted">
+                <i class="bi bi-inbox display-5"></i>
+                <p class="mt-2 mb-3">
+                    @(Model.HasFilter ? "Nothing matches these filters. Try fewer words or reset the filters." : "No projects have been added yet.")
+                </p>
+                @if (Model.HasFilter)
+                {
+                    <a asp-action="Index" class="btn-outline-brand auto-width">Reset filters</a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var item in Model.Items)
+                {
+                    <div class="col-lg-6">
+                        <partial name="_ProjectCard" model="item" />
+                    </div>
+                }
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="pager mt-4" aria-label="Pages">
+                    @if (Model.Page > 1)
+                    {
+                        <a href="@PageUrl(Model.Page - 1)" class="btn-outline-brand auto-width"><i class="bi bi-arrow-left"></i> Previous</a>
+                    }
+                    <span class="pager-info">Page @Model.Page of @Model.TotalPages</span>
+                    @if (Model.Page < Model.TotalPages)
+                    {
+                        <a href="@PageUrl(Model.Page + 1)" class="btn-outline-brand auto-width">Next <i class="bi bi-arrow-right"></i></a>
+                    }
+                </nav>
+            }
+        }
+    }
+
+    <div class="cta-band mt-5">
+        <h2 class="fw-bold mb-2">Have an idea?</h2>
+        <p class="mb-4" style="opacity: .92;">Check it against all these projects by meaning, not just by words.</p>
+        <a href="/Check/Upload" class="btn-gold">Check my idea <i class="bi bi-arrow-right"></i></a>
+    </div>
+</section>

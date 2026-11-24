@@ -1,21 +1,41 @@
-﻿<header class="topbar">
+﻿@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var isLoggedIn = User.Identity?.IsAuthenticated == true;
+}
+
+<header class="topbar site-header">
     <div class="container site-nav">
         <a href="/" class="brand">
-            <img src="~/images/numl-logo.png" alt="NUML logo" />
+            <partial name="_BrandMark" />
             <span class="brand-name">
-                NUML Islamabad
-                <small>FYP Match Tracker</small>
+                FYP Match Tracker
+                <small>Check if your final year project idea already exists</small>
             </span>
         </a>
-        <nav class="d-flex align-items-center gap-3">
-            <partial name="_ThemeSwitcher" />
-            <a href="/" class="nav-link-soft"><i class="bi bi-house"></i> Home</a>
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                    <button type="submit" class="nav-link-soft border-0 bg-transparent"><i class="bi bi-box-arrow-right"></i> Log out</button>
-                </form>
-            }
-        </nav>
+
+        <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#siteMenu"
+                aria-controls="siteMenu" aria-expanded="false" aria-label="Open menu">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <div class="nav-collapse collapse" id="siteMenu">
+            <nav class="nav-menu" aria-label="Main">
+                <partial name="_ThemeSwitcher" />
+                <a href="/" class="nav-link-soft @(controller == "Home" && action == "Index" ? "active" : "")"><i class="bi bi-house"></i> Home</a>
+                <a href="/Browse" class="nav-link-soft @(controller == "Browse" ? "active" : "")"><i class="bi bi-collection"></i> Browse</a>
+                <a href="/Check/Upload" class="nav-link-soft @(controller == "Check" ? "active" : "")"><i class="bi bi-search"></i> Check idea</a>
+                @if (isLoggedIn)
+                {
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button type="submit" class="nav-link-soft border-0 bg-transparent"><i class="bi bi-box-arrow-right"></i> Log out</button>
+                    </form>
+                }
+                else
+                {
+                    <a href="/Account/Choose" class="btn-gold btn-small ms-lg-2"><i class="bi bi-box-arrow-in-right"></i> Log in</a>
+                }
+            </nav>
+        </div>
     </div>
 </header>

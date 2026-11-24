@@ -14,13 +14,31 @@ builder.Services.AddSingleton<IEmbedder, LocalEmbedderService>();  //AI model wa
 builder.Services.AddSingleton<MeaningScorer>();    //Meaning score nikalne wala, ek hi
 builder.Services.AddSingleton<OcrService>();       //Scanned PDF parhne wala (OCR), ek hi
 builder.Services.AddScoped<SimilarityEngine>(); //Poora compare karne wala, har request ke liye naya
+builder.Services.AddScoped<BrowseService>();    //Browse page aur home page ke top FYPs, har request ke liye naya
 
 // Crossref (research papers): ek tayyar HttpClient jis mein address, timeout aur naam pehle se set hain
 builder.Services.AddHttpClient<PaperSearchService>(client =>
 {
     client.BaseAddress = new Uri("https://api.crossref.org/");
     client.Timeout = TimeSpan.FromSeconds(8);   // 8 second se zyada intezar nahi
-    client.DefaultRequestHeaders.UserAgent.ParseAdd("FypTracker/1.0 (NUML student project)");
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("FypTracker/1.0 (student project)");
+});
+
+// Live search: universities (DSpace) ki public search API. Settings "LiveSearch" section se, na ho to defaults.
+builder.Services.Configure<LiveSearchOptions>(builder.Configuration.GetSection("LiveSearch"));
+builder.Services.AddMemoryCache();                  // ek hi search ko kuch ghante yaad rakhne ke liye
+builder.Services.AddHttpClient<DSpaceClient>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(8);       // ek request par 8 second se zyada intezar nahi
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("FypTracker/1.0 (student project)");   // sites ko pata ho ke kaun hai
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+});
+builder.Services.AddScoped<LiveSearchService>();    // har request ke liye naya
+
+// Suggestion box: template (offline) + optional AI. Timeout 10 second, uske baad template.
+builder.Services.AddHttpClient<ISuggestionService, SuggestionService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(10);
 });
 
 // Login: ek cookie jis mein user ka naam aur role hota hai

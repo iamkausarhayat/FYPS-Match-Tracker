@@ -8,7 +8,7 @@
 <section class="page-hero compact">
     <div class="container">
         <h1 class="fw-bold mb-2">Check your FYP idea</h1>
-        <p class="lead mb-0" style="opacity: .9;">Upload your proposal (optional) or just type your idea, then press Analyze.</p>
+        <p class="lead mb-0" style="opacity: .9;">Upload your proposal (optional) or just type your idea, then press Analyze. We compare it with projects from many universities.</p>
     </div>
 </section>
 
@@ -70,11 +70,13 @@
                             <span asp-validation-for="Description" class="text-danger small"></span>
                             <span class="form-text ms-auto"><span id="descCount">0</span> / 3000 (minimum 50)</span>
                         </div>
+                        <div class="form-text">Tip: 80 words or more gives a better match. Please write in English.</div>
                     </div>
 
                     <div class="mb-1">
                         <label asp-for="SupervisorName" class="form-label fw-semibold"></label>
-                        <input asp-for="SupervisorName" class="form-control form-control-lg" placeholder="e.g. Dr. Ahmed Raza" />
+                        <span class="badge text-bg-secondary ms-1">Optional</span>
+                        <input asp-for="SupervisorName" class="form-control form-control-lg" placeholder="e.g. Dr. Ahmed Raza (you can leave this empty)" />
                         <span asp-validation-for="SupervisorName" class="text-danger small"></span>
                     </div>
                 </div>
@@ -82,7 +84,7 @@
                 <!-- Step 3: analyze -->
                 <div class="step-card">
                     <div class="step-title"><span class="step-no">3</span> Analyze</div>
-                    <p class="text-muted">Your idea is compared with the department's previous FYPs. This may take a few seconds.</p>
+                    <p class="text-muted">Your idea is compared with previous FYPs from different universities. This may take a few seconds.</p>
                     <button type="submit" id="analyzeBtn" class="btn-brand">
                         <i class="bi bi-cpu"></i> Analyze my idea
                     </button>
@@ -99,16 +101,14 @@
         <div class="spinner-border text-primary" aria-hidden="true"></div>
         <h2 class="h5 fw-bold mt-3 mb-2">Analyzing your idea...</h2>
         <p class="text-muted small mb-0">
-            We are comparing it with the department's FYPs by meaning.
+            We are comparing it with FYPs from different universities by meaning.
             The first check can take a little longer while the AI model loads.
             Please do not close this page.
         </p>
     </div>
 </div>
 
-<footer class="text-center py-4 text-muted small">
-    &copy; 2026 NUML Islamabad &bull; Advance Programming Project
-</footer>
+
 
 @section Scripts {
     <script>

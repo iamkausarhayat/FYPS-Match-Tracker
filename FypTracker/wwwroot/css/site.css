@@ -1,11 +1,7 @@
-/* ---------- Font (self-hosted, works without internet) ---------- */
-@font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: swap;
-    src: url('../fonts/inter-latin-wght-normal.woff2') format('woff2');
-}
+/* =====================================================================
+   FYP Match Tracker - site.css  (redesigned look)
+   Fonts: Manrope (headings) + DM Sans (text), loaded in _Layout.cshtml
+   ===================================================================== */
 
 :root {
     --navy-900: #061a3d;
@@ -17,19 +13,23 @@
     --ink: #16233a;
     --heading: #0b2a6b;
     --link: #1e56c9;
-    --soft: #f5f8ff;
+    --soft: #f4f7fd;
     --surface: #ffffff;
-    --border: #e6ecf8;
+    --border: #e1e8f5;
     --border-strong: #b8c7e6;
-    --muted: #6b7a90;
+    --muted: #566780;
     --tint-blue: #e8efff;
     --tint-gold: #fff3d1;
     --tint-warm: #fffaf0;
     --tint-green: #e3f6ec;
     --tint-red: #fde8e5;
-    --ok: #198754;
-    --warn: #a86a00;
-    --bad: #c0392b;
+    --ok: #146c43;
+    --warn: #8a5a00;
+    --bad: #b02a1c;
+    --font-head: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+    --shadow-sm: 0 4px 16px rgba(11, 42, 107, .08);
+    --shadow-md: 0 12px 34px rgba(11, 42, 107, .14);
 }
 
 [data-theme="dark"] {
@@ -49,185 +49,589 @@
     --ok: #4cc58a;
     --warn: #f0b955;
     --bad: #ff7b6e;
+    --shadow-sm: 0 4px 16px rgba(0, 0, 0, .35);
+    --shadow-md: 0 12px 34px rgba(0, 0, 0, .45);
 }
 
+/* ---------- Base ---------- */
 html {
     scroll-behavior: smooth;
 }
 
 body {
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-    background: var(--soft);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: var(--font-body);
+    line-height: 1.6;
     color: var(--ink);
+    background: var(--soft);
 }
 
-/* ---------- Hero ---------- */
-.hero {
-    position: relative;
-    overflow: hidden;
-    color: #fff;
-    background-color: var(--navy);
-    background-image: linear-gradient(135deg, rgba(6, 26, 61, .92) 0%, rgba(11, 42, 107, .82) 55%, rgba(30, 86, 201, .7) 100%), url('../images/campus.jpg'), linear-gradient(135deg, var(--navy-900) 0%, var(--navy) 55%, var(--blue) 100%);
-    background-size: cover;
-    background-position: center;
+main {
+    flex: 1 0 auto;
 }
 
-    .hero > *:not(.hero-blob) {
-        position: relative;
-        z-index: 1;
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: var(--font-head);
+    font-weight: 800;
+    letter-spacing: -.01em;
+}
+
+.text-muted {
+    color: var(--muted) !important;
+}
+
+.skip-link {
+    position: absolute;
+    left: -999px;
+    top: 0;
+    z-index: 3000;
+    padding: .6rem 1rem;
+    color: var(--navy-900);
+    background: var(--gold);
+    border-radius: 0 0 .5rem 0;
+    font-weight: 700;
+}
+
+    .skip-link:focus {
+        left: 0;
     }
 
-.hero-blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(70px);
-    pointer-events: none;
+/* ---------- Header (top navigation bar) ---------- */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: var(--surface);
+    box-shadow: 0 2px 14px rgba(11, 42, 107, .1);
 }
 
-.blob-1 {
-    width: 380px;
-    height: 380px;
-    top: -120px;
-    right: -80px;
-    background: var(--sky);
-    opacity: .35;
-}
+    .site-header::after {
+        content: "";
+        display: block;
+        height: 4px;
+        background: linear-gradient(90deg, var(--navy), var(--blue) 55%, var(--gold));
+    }
 
-.blob-2 {
-    width: 300px;
-    height: 300px;
-    bottom: -140px;
-    left: -100px;
-    background: var(--gold);
-    opacity: .18;
-}
-
-.hero-body {
-    padding: 3rem 0 5rem;
-}
-
-/* ---------- Top bar ---------- */
 .site-nav {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 0;
+    gap: 1rem;
+    padding: .7rem 0;
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: .75rem;
-    color: #fff;
+    gap: .8rem;
+    color: var(--heading);
     text-decoration: none;
 }
 
     .brand:hover {
-        color: #fff;
+        color: var(--heading);
     }
 
     .brand img {
         width: 52px;
         height: 52px;
         border-radius: 50%;
-        background: var(--surface);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(11, 42, 107, .25);
     }
 
 .brand-name {
-    font-weight: 700;
+    font-family: var(--font-head);
+    font-size: 1.2rem;
+    font-weight: 800;
     line-height: 1.1;
+    color: var(--heading);
 }
 
     .brand-name small {
         display: block;
-        font-weight: 400;
-        font-size: .72rem;
-        letter-spacing: .04em;
-        opacity: .8;
+        margin-top: .15rem;
+        font-family: var(--font-body);
+        font-size: .74rem;
+        font-weight: 600;
+        letter-spacing: .03em;
+        color: var(--muted);
     }
 
-.nav-link-soft {
-    color: rgba(255, 255, 255, .85);
-    font-weight: 500;
-    text-decoration: none;
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
 }
 
-    .nav-link-soft:hover {
-        color: #fff;
+.nav-link-soft {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .5rem .95rem;
+    font-weight: 600;
+    color: var(--heading);
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 999px;
+    transition: background .15s ease, color .15s ease;
+}
+
+    .nav-link-soft:hover,
+    .nav-link-soft.active {
+        color: var(--link);
+        background: var(--tint-blue);
     }
 
-/* ---------- Buttons (our own, not Bootstrap .btn) ---------- */
+.nav-user {
+    padding: 0 .5rem;
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: 1.5rem;
+    color: var(--heading);
+    cursor: pointer;
+    background: var(--tint-blue);
+    border: 0;
+    border-radius: 12px;
+}
+
+@media (max-width: 991.98px) {
+    .nav-toggle {
+        display: inline-flex;
+    }
+
+    .nav-collapse {
+        flex-basis: 100%;
+    }
+
+    .nav-menu {
+        flex-direction: column;
+        align-items: stretch;
+        padding: .5rem 0 .75rem;
+    }
+
+    .nav-link-soft {
+        justify-content: flex-start;
+        border-radius: .75rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .nav-collapse {
+        display: flex !important;
+    }
+}
+
+/* Theme switch (System / Light / Dark) */
+.theme-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--heading);
+}
+
+    .theme-switch select {
+        padding: .3rem .7rem;
+        font-size: .85rem;
+        color: inherit;
+        background: transparent;
+        border: 1px solid var(--border-strong);
+        border-radius: 999px;
+    }
+
+        .theme-switch select option {
+            color: var(--ink);
+            background: var(--surface);
+        }
+
+/* ---------- Buttons ---------- */
 .btn-gold,
 .btn-ghost {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: .5rem;
-    padding: .8rem 1.8rem;
-    border-radius: 999px;
+    padding: .85rem 1.9rem;
     font-weight: 700;
     text-decoration: none;
+    border-radius: 999px;
+    border: 0;
+    cursor: pointer;
     transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
 .btn-gold {
-    background: var(--gold);
     color: var(--navy-900);
+    background: var(--gold);
     box-shadow: 0 8px 22px rgba(246, 195, 67, .35);
 }
 
     .btn-gold:hover {
-        background: var(--gold-dark);
         color: var(--navy-900);
+        background: var(--gold-dark);
         transform: translateY(-2px);
     }
 
 .btn-ghost {
     color: #fff;
-    border: 1.5px solid rgba(255, 255, 255, .5);
+    border: 1.5px solid rgba(255, 255, 255, .6);
 }
 
     .btn-ghost:hover {
         color: #fff;
-        background: rgba(255, 255, 255, .12);
+        background: rgba(255, 255, 255, .14);
     }
 
 .btn-small {
     padding: .5rem 1.2rem;
-    font-size: .9rem;
+    font-size: .92rem;
 }
 
-/* ---------- Hero text ---------- */
+/* ---------- Landing page: hero ---------- */
+.hero {
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+    background-color: var(--navy);
+    background-image: linear-gradient(120deg, #061a3d 0%, #0b2a6b 55%, #1e56c9 100%), linear-gradient(135deg, var(--navy-900) 0%, var(--navy) 55%, var(--blue) 100%);
+    background-size: cover;
+    background-position: center;
+}
+
+.hero-body {
+    padding: 4.5rem 0 7.5rem;
+}
+
+.hero h1 {
+    font-size: clamp(2.3rem, 5.2vw, 3.7rem);
+    line-height: 1.08;
+    color: #fff;
+}
+
+.hero-lead {
+    max-width: 560px;
+    margin: 1.25rem 0 2rem;
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, .92);
+}
+
 .brand-badge {
     display: inline-flex;
     align-items: center;
     gap: .5rem;
-    padding: .4rem 1rem;
-    border-radius: 999px;
-    font-size: .78rem;
-    letter-spacing: .05em;
+    padding: .45rem 1.1rem;
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .06em;
     text-transform: uppercase;
-    background: rgba(255, 255, 255, .12);
-    border: 1px solid rgba(255, 255, 255, .25);
+    background: rgba(255, 255, 255, .13);
+    border: 1px solid rgba(255, 255, 255, .3);
+    border-radius: 999px;
 }
 
 .text-gold {
     color: var(--gold);
 }
 
-.stat strong {
+/* Sample report card shown in the hero (decoration only) */
+.preview-card {
+    --verdict-color: var(--gold);
+    padding: 1.6rem;
+    color: #fff;
+    background: rgba(255, 255, 255, .1);
+    border: 1px solid rgba(255, 255, 255, .28);
+    border-radius: 1.6rem;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, .35);
+    backdrop-filter: blur(8px);
+}
+
+    .preview-card .gauge {
+        width: 150px;
+        height: 150px;
+        background: conic-gradient(var(--gold) calc(var(--pct) * 1%), rgba(255, 255, 255, .22) 0);
+    }
+
+    .preview-card .gauge-inner {
+        width: 114px;
+        height: 114px;
+        background: var(--navy-900);
+    }
+
+        .preview-card .gauge-inner strong {
+            font-size: 2rem;
+            color: var(--gold);
+        }
+
+        .preview-card .gauge-inner span {
+            color: rgba(255, 255, 255, .8);
+        }
+
+    .preview-card .meter {
+        background: rgba(255, 255, 255, .22);
+    }
+
+.preview-label {
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .8);
+}
+
+/* ---------- Landing page: stats strip ---------- */
+.stats-strip {
+    position: relative;
+    z-index: 2;
+    margin-top: -3.75rem;
+}
+
+.stat-tile {
+    height: 100%;
+    padding: 1.4rem 1rem;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.2rem;
+    box-shadow: var(--shadow-md);
+}
+
+    .stat-tile strong {
+        display: block;
+        font-family: var(--font-head);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.1;
+        color: var(--link);
+    }
+
+    .stat-tile span {
+        font-size: .9rem;
+        font-weight: 500;
+        color: var(--muted);
+    }
+
+/* ---------- Landing page: sections ---------- */
+.section {
+    padding: 4.5rem 0;
+}
+
+.section-alt {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.section-kicker {
     display: block;
-    font-size: 1.6rem;
+    margin-bottom: .5rem;
+    font-size: .8rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+}
+
+[data-theme="dark"] .section-kicker {
     color: var(--gold);
 }
 
-.stat span {
-    font-size: .85rem;
-    opacity: .85;
+:root:not([data-theme="dark"]) .section-kicker {
+    color: #8a5a00;
 }
 
-/* ---------- Meter (used on the result page) ---------- */
+.section-title {
+    font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+    font-weight: 800;
+    color: var(--heading);
+}
 
+.section-sub {
+    max-width: 620px;
+    margin: .5rem auto 0;
+    color: var(--muted);
+}
+
+.how-card {
+    position: relative;
+    height: 100%;
+    padding: 2.2rem 1.6rem 1.7rem;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.3rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.how-no {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    width: 46px;
+    height: 46px;
+    margin-left: -23px;
+    font-family: var(--font-head);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--navy-900);
+    background: var(--gold);
+    border: 4px solid var(--soft);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.section-alt .how-no {
+    border-color: var(--surface);
+}
+
+.how-card .feature-icon {
+    margin: .5rem auto 1rem;
+}
+
+.feature-card {
+    height: 100%;
+    padding: 1.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+    .feature-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md);
+    }
+
+.feature-icon {
+    width: 58px;
+    height: 58px;
+    margin-bottom: 1rem;
+    font-size: 1.6rem;
+    color: #fff;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--blue), var(--sky));
+}
+
+.verdict-card {
+    --c: var(--ok);
+    --c-bg: var(--tint-green);
+    height: 100%;
+    padding: 1.6rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 6px solid var(--c);
+    border-radius: 1.2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+    .verdict-card.similar {
+        --c: #d98a00;
+        --c-bg: var(--tint-gold);
+    }
+
+    .verdict-card.done {
+        --c: var(--bad);
+        --c-bg: var(--tint-red);
+    }
+
+    .verdict-card .range {
+        display: inline-block;
+        padding: .25rem .9rem;
+        font-size: .85rem;
+        font-weight: 800;
+        color: var(--c);
+        background: var(--c-bg);
+        border-radius: 999px;
+    }
+
+.cta-band {
+    padding: 3rem 1.5rem;
+    color: #fff;
+    text-align: center;
+    border-radius: 1.6rem;
+    background: linear-gradient(120deg, var(--navy-900), var(--navy) 55%, var(--blue));
+    box-shadow: var(--shadow-md);
+}
+
+    .cta-band h2,
+    .cta-band h3 {
+        color: #fff;
+    }
+
+/* ---------- Footer ---------- */
+.site-footer {
+    flex-shrink: 0;
+    margin-top: 3rem;
+    color: rgba(255, 255, 255, .82);
+    background: var(--navy-900);
+    border-top: 5px solid var(--gold);
+}
+
+    .site-footer h2 {
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: var(--gold);
+    }
+
+    .site-footer a {
+        color: rgba(255, 255, 255, .82);
+        text-decoration: none;
+    }
+
+        .site-footer a:hover {
+            color: var(--gold);
+            text-decoration: underline;
+        }
+
+    .site-footer ul {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    .site-footer li {
+        margin-bottom: .55rem;
+    }
+
+    .site-footer .brand,
+    .site-footer .brand-name {
+        color: #fff;
+    }
+
+        .site-footer .brand-name small {
+            color: rgba(255, 255, 255, .7);
+        }
+
+.footer-bottom {
+    padding: 1.1rem 0;
+    font-size: .88rem;
+    text-align: center;
+    color: rgba(255, 255, 255, .7);
+    border-top: 1px solid rgba(255, 255, 255, .14);
+}
+
+/* ---------- Result meters ---------- */
 .meter {
     height: 12px;
     overflow: hidden;
@@ -242,47 +646,7 @@ body {
         background: linear-gradient(90deg, var(--gold), #f08a24);
     }
 
-/* ---------- Sections ---------- */
-.section-title {
-    font-weight: 800;
-    color: var(--heading);
-}
 
-.feature-card {
-    height: 100%;
-    padding: 1.75rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 1.25rem;
-    box-shadow: 0 6px 24px rgba(11, 42, 107, .07);
-    transition: transform .2s ease, box-shadow .2s ease;
-}
-
-    .feature-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 16px 36px rgba(11, 42, 107, .15);
-    }
-
-.feature-icon {
-    width: 56px;
-    height: 56px;
-    margin-bottom: 1rem;
-    font-size: 1.6rem;
-    color: #fff;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, var(--blue), var(--sky));
-}
-
-.cta-band {
-    padding: 2.5rem 1.5rem;
-    color: #fff;
-    text-align: center;
-    border-radius: 1.5rem;
-    background: linear-gradient(135deg, var(--navy), var(--blue));
-}
 /* ---------- Inner pages ---------- */
 .topbar {
     background: var(--surface);
@@ -890,7 +1254,7 @@ body {
 .auth-wrap,
 .status-wrap {
     background-color: var(--navy);
-    background-image: linear-gradient(135deg, rgba(6, 26, 61, .92) 0%, rgba(11, 42, 107, .85) 60%, rgba(30, 86, 201, .75) 100%), url('../images/campus.jpg'), linear-gradient(135deg, var(--navy-900), var(--navy) 60%, var(--blue));
+    background-image: linear-gradient(135deg, #061a3d 0%, #0b2a6b 60%, #1e56c9 100%), linear-gradient(135deg, var(--navy-900), var(--navy) 60%, var(--blue));
     background-size: cover;
     background-position: center;
 }
@@ -1080,3 +1444,273 @@ body {
     :root:not([data-theme="dark"]) .result-summary.verdict-similar {
         --verdict-color: #8a5a00;
     }
+
+/* =====================================================================
+   Final polish (these rules come last so they win over older rules above)
+   ===================================================================== */
+
+/* Page heading banner on every inner page */
+.page-hero {
+    padding: 3.25rem 0 6.5rem;
+    text-align: center;
+    color: #fff;
+}
+
+    .page-hero.compact {
+        padding: 3rem 0 6rem;
+        text-align: left;
+    }
+
+    .page-hero h1 {
+        font-size: clamp(1.9rem, 4vw, 2.85rem);
+        line-height: 1.15;
+        color: #fff;
+    }
+
+        .page-hero h1::after {
+            content: "";
+            display: block;
+            width: 72px;
+            height: 5px;
+            margin-top: .9rem;
+            background: var(--gold);
+            border-radius: 5px;
+        }
+
+    .page-hero:not(.compact) h1::after {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .page-hero .lead {
+        font-size: 1.15rem;
+        color: rgba(255, 255, 255, .94);
+        opacity: 1 !important;
+    }
+
+.info-strip {
+    color: #fff;
+}
+
+/* Login, register and status pages sit in the middle of the photo banner */
+.auth-wrap,
+.status-wrap {
+    min-height: 0;
+    padding: 4rem 1rem 5rem;
+}
+
+.auth-card,
+.status-card {
+    border: 1px solid var(--border);
+}
+
+.step-card,
+.table-card,
+.match-card,
+.stat-card {
+    box-shadow: var(--shadow-sm);
+}
+
+/* Bigger, clearer form labels and boxes */
+.form-label {
+    color: var(--heading);
+}
+
+.form-control,
+.form-select {
+    border-color: var(--border-strong);
+}
+
+/* Footer is never printed */
+@media print {
+    .site-footer,
+    .skip-link {
+        display: none !important;
+    }
+}
+
+/* =====================================================================
+   Step 2: result page (university tags, top project card, filter, coverage)
+   Paste this at the very bottom of wwwroot/css/site.css
+   ===================================================================== */
+
+/* The verdict colours also work on the top project card and the suggestion box */
+.featured-card.verdict-unique,
+.suggestion-box.verdict-unique {
+    --verdict-color: var(--ok);
+    --verdict-bg: var(--tint-green);
+}
+
+.featured-card.verdict-similar,
+.suggestion-box.verdict-similar {
+    --verdict-color: #d98a00;
+    --verdict-bg: var(--tint-gold);
+}
+
+.featured-card.verdict-done,
+.suggestion-box.verdict-done {
+    --verdict-color: var(--bad);
+    --verdict-bg: var(--tint-red);
+}
+
+:root:not([data-theme="dark"]) .featured-card.verdict-similar,
+:root:not([data-theme="dark"]) .suggestion-box.verdict-similar {
+    --verdict-color: #8a5a00;
+}
+
+/* The one project that decided the verdict */
+.featured-card {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 1.6rem;
+    background: var(--surface);
+    border: 2px solid var(--verdict-color);
+    border-radius: 1.2rem;
+    box-shadow: var(--shadow-md);
+}
+
+.featured-label {
+    display: inline-block;
+    margin-bottom: .6rem;
+    padding: .2rem .8rem;
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--verdict-color);
+    background: var(--verdict-bg);
+    border-radius: 999px;
+}
+
+.uni-tag {
+    display: inline-block;
+    margin: 0 .35rem .25rem 0;
+    padding: .15rem .7rem;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--heading);
+    background: var(--tint-blue);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+}
+
+.low-conf-tag {
+    display: inline-block;
+    margin: 0 .25rem .25rem 0;
+    padding: .15rem .7rem;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--warn);
+    background: var(--tint-gold);
+    border-radius: 999px;
+}
+
+.link-missing {
+    font-size: .88rem;
+    color: var(--muted);
+}
+
+/* One line under the verdict: how much we compared with */
+.coverage-note {
+    margin-top: 1rem;
+    padding: .7rem 1rem;
+    font-size: .9rem;
+    color: var(--heading);
+    background: var(--tint-blue);
+    border-radius: .8rem;
+}
+
+/* Friendly suggestion box */
+.suggestion-box {
+    margin: 1.5rem 0;
+    padding: 1.25rem 1.4rem;
+    background: var(--verdict-bg);
+    border-left: 6px solid var(--verdict-color);
+    border-radius: 1rem;
+}
+
+    .suggestion-box .suggestion-title {
+        font-weight: 800;
+        color: var(--verdict-color);
+    }
+
+/* University filter above the list of other projects */
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1rem;
+    padding: .8rem 1rem;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: .9rem;
+}
+
+    .filter-bar .form-select {
+        width: auto;
+        min-width: 200px;
+    }
+
+@media print {
+    .featured-card,
+    .suggestion-box,
+    .coverage-note {
+        box-shadow: none;
+        break-inside: avoid;
+    }
+
+    .filter-bar {
+        display: none !important;
+    }
+
+    .uni-tag,
+    .low-conf-tag,
+    .featured-label {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+/* ===== Step 5: browse page and top FYPs ===== */
+
+/* Award badge on a project card */
+.award-tag {
+    display: inline-block;
+    margin: 0 .35rem .25rem 0;
+    padding: .15rem .7rem;
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--warn);
+    background: var(--tint-gold);
+    border: 1px solid var(--gold);
+    border-radius: 999px;
+}
+
+.proj-card {
+    margin-bottom: 0;
+}
+
+    .proj-card details summary {
+        cursor: pointer;
+        color: var(--link);
+    }
+
+/* Previous / Next buttons under the list */
+.pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.pager-info {
+    font-weight: 600;
+    color: var(--muted);
+}
+
+@media print {
+    .award-tag {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

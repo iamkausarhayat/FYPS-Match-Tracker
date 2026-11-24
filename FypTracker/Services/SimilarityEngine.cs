@@ -1,22 +1,23 @@
-﻿using FypTracker.Data;
+﻿using System.Text.Json;
+using FypTracker.Data;
 using FypTracker.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace FypTracker.Services
 {
-    // Ek idea ko NUML ke saare FYP projects se compare karta hai,
+    // Ek idea ko tamam universities ke saved projects se compare karta hai,
     // result ko database mein save karta hai, aur wapis load bhi karta hai.
     public class SimilarityEngine
     {
-        private const int MaxMatches = 5;
-
         private readonly AppDbContext _db;
         private readonly MeaningScorer _scorer;
+        private readonly ILogger<SimilarityEngine> _logger;
 
-        public SimilarityEngine(AppDbContext db, MeaningScorer scorer)
+        public SimilarityEngine(AppDbContext db, MeaningScorer scorer, ILogger<SimilarityEngine> logger)
         {
             _db = db;
             _scorer = scorer;
+            _logger = logger;
         }
 
         // ---------- 1. Compare ----------
@@ -27,10 +28,17 @@ namespace FypTracker.Services
             var student = await _scorer.CreateFingerprintAsync(title, description);
             var studentText = $"{title} {description}";
 
-            var projects = await _db.FypProjects.Include(p => p.Department).ToListAsync();
+            var projects = await _db.FypProjects
+                .Include(p => p.Department)
+                .Include(p => p.University)
+                .ToListAsync();
 
             bool changed = false;
-            var matches = new List<MatchItemViewModel>();
+
+            // Same project do bar aaye (jaise COMSATS ka 2021 aur 2024 wala) to sirf ek gina jata hai.
+            // Key = ContentHash. Hash khali ho to usi waqt bana kar save kar dete hain.
+            var bestByKey = new Dictionary<string, MatchItemViewModel>();
+            var universityIds = new HashSet<int>();
 
             foreach (var project in projects)
             {
@@ -45,19 +53,39 @@ namespace FypTracker.Services
                     changed = true;
                 }
 
+                if (string.IsNullOrEmpty(project.ContentHash))
+                {
+                    project.ContentHash = ContentHasher.Create(project.Title, project.Description);
+                    changed = true;
+                }
+
                 var meaning = MeaningScorer.Compare(student, fingerprint);
                 var words = WordSimilarity.Compare(studentText, $"{project.Title} {project.Description}");
 
-                matches.Add(new MatchItemViewModel
+                var match = ToMatch(project);
+                match.MeaningScore = meaning.Score;
+                match.WordScore = words.Score;
+                match.CommonKeywords = words.CommonKeywords;
+                match.BestPassage = meaning.BestPassage;
+
+                // Tuning ke liye: Output window mein har project ke raw numbers dikhte hain
+                if (match.FinalScore >= 10)
                 {
-                    ProjectId = project.Id,
-                    Title = project.Title,
-                    Detail = $"{project.Department.Name} • {project.Year} • Supervisor: {project.SupervisorName}",
-                    MeaningScore = meaning.Score,
-                    WordScore = words.Score,
-                    CommonKeywords = words.CommonKeywords,
-                    BestPassage = meaning.BestPassage
-                });
+                    _logger.LogInformation(
+                        "SCORE {Title} | raw={Raw:F3} title={T:F3} cover={C:F3} bestPair={B:F3} | meaning={M} words={W} final={F}",
+                        project.Title.Length > 50 ? project.Title[..50] : project.Title,
+                        meaning.RawCosine, meaning.TitleCosine, meaning.CoverageCosine, meaning.BestPairCosine,
+                        meaning.Score, words.Score, match.FinalScore);
+                }
+
+                universityIds.Add(project.UniversityId);
+
+                // Duplicate mile to jis ka score zyada ho wo rakho
+                if (!bestByKey.TryGetValue(project.ContentHash!, out var existing)
+                    || match.FinalScore > existing.FinalScore)
+                {
+                    bestByKey[project.ContentHash!] = match;
+                }
             }
 
             if (changed)
@@ -70,11 +98,13 @@ namespace FypTracker.Services
                 Title = title,
                 SupervisorName = supervisorName,
                 FileName = fileName,
-                DepartmentMatches = matches
+                ProjectMatches = bestByKey.Values
                     .OrderByDescending(m => m.FinalScore)
-                    .Take(MaxMatches)
+                    .Take(SimilarityRules.MaxStoredMatches)
                     .ToList(),
-                PaperMatches = new List<MatchItemViewModel>()   // papers ka percentage nahi nikalta
+                PaperMatches = new List<MatchItemViewModel>(),   // papers ka percentage nahi nikalta
+                ComparedProjectCount = bestByKey.Count,
+                ComparedUniversityCount = universityIds.Count
             };
         }
 
@@ -97,10 +127,13 @@ namespace FypTracker.Services
                 OverallScore = result.OverallScore,
                 Verdict = result.Verdict,
                 CheckedAt = DateTime.UtcNow,
+                ComparedProjectCount = result.ComparedProjectCount,
+                ComparedUniversityCount = result.ComparedUniversityCount,
+                SuggestionJson = result.Suggestion == null ? null : JsonSerializer.Serialize(result.Suggestion),
                 UserId = userId
             };
 
-            foreach (var match in result.DepartmentMatches.Where(m => m.ProjectId != null))
+            foreach (var match in result.ProjectMatches.Where(m => m.ProjectId != null))
             {
                 check.Matches.Add(new Entities.SimilarityMatch
                 {
@@ -168,6 +201,9 @@ namespace FypTracker.Services
                     .ThenInclude(m => m.FypProject)
                         .ThenInclude(p => p!.Department)
                 .Include(c => c.Matches)
+                    .ThenInclude(m => m.FypProject)
+                        .ThenInclude(p => p!.University)
+                .Include(c => c.Matches)
                     .ThenInclude(m => m.ExternalPaper)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -181,19 +217,21 @@ namespace FypTracker.Services
                 Title = check.Title,
                 SupervisorName = check.SupervisorName,
                 FileName = check.FileName ?? string.Empty,
-                DepartmentMatches = check.Matches
+                ComparedProjectCount = check.ComparedProjectCount,
+                ComparedUniversityCount = check.ComparedUniversityCount,
+                Suggestion = ReadSuggestion(check.SuggestionJson),
+                ProjectMatches = check.Matches
                     .Where(m => m.FypProject != null)
-                    .Select(m => new MatchItemViewModel
+                    .Select(m =>
                     {
-                        ProjectId = m.FypProjectId,
-                        Title = m.FypProject!.Title,
-                        Detail = $"{m.FypProject.Department.Name} • {m.FypProject.Year} • Supervisor: {m.FypProject.SupervisorName}",
-                        MeaningScore = m.MeaningScore,
-                        WordScore = m.WordScore,
-                        CommonKeywords = m.CommonKeywords
+                        var item = ToMatch(m.FypProject!);
+                        item.MeaningScore = m.MeaningScore;
+                        item.WordScore = m.WordScore;
+                        item.CommonKeywords = m.CommonKeywords
                             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                            .ToList(),
-                        BestPassage = m.BestPassage
+                            .ToList();
+                        item.BestPassage = m.BestPassage;
+                        return item;
                     })
                     .OrderByDescending(m => m.FinalScore)
                     .ToList(),
@@ -212,6 +250,66 @@ namespace FypTracker.Services
             };
 
             return (result, check.UserId);
+        }
+
+        // ---------- helpers ----------
+
+        // Saved JSON -> SuggestionViewModel. Empty or broken text = null (the controller then makes a template one).
+        private static SuggestionViewModel? ReadSuggestion(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<SuggestionViewModel>(json);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        // Database project -> result page card (scores baad mein bharte hain).
+        // Project ke saath Department aur University load honi chahiye.
+        private static MatchItemViewModel ToMatch(Entities.FypProject p)
+        {
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(p.University?.ShortName)) parts.Add(p.University.ShortName);
+            if (!string.IsNullOrWhiteSpace(p.Department?.Name)) parts.Add(p.Department.Name);
+            parts.Add(p.Year.ToString());
+            if (!string.IsNullOrWhiteSpace(p.SupervisorName)) parts.Add("Supervisor: " + p.SupervisorName);
+
+            return new MatchItemViewModel
+            {
+                ProjectId = p.Id,
+                Title = p.Title,
+                Detail = string.Join(" • ", parts),
+                UniversityName = p.University?.Name ?? string.Empty,
+                UniversityShort = p.University?.ShortName ?? string.Empty,
+                Year = p.Year,
+                Area = p.Area ?? p.Department?.Name ?? string.Empty,
+                Supervisor = p.SupervisorName ?? string.Empty,
+                Authors = p.AuthorsText ?? string.Empty,
+                SourceUrl = SafeUrl(p.SourceUrl),
+                IsLowConfidence = p.DataQuality == Entities.DataQuality.TitleOnly
+            };
+        }
+
+        // Sirf http / https link aage jaata hai (javascript: jaise khatarnak links nahi)
+        private static string? SafeUrl(string? url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return null;
+            }
+
+            bool ok = Uri.TryCreate(url.Trim(), UriKind.Absolute, out var uri)
+                      && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+
+            return ok ? uri!.AbsoluteUri : null;
         }
 
         private static string Cut(string? value, int maxLength)

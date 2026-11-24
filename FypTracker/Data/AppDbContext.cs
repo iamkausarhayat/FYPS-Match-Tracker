@@ -11,6 +11,7 @@ namespace FypTracker.Data
 
         // Each DbSet becomes one table
         public DbSet<Department> Departments => Set<Department>();
+        public DbSet<University> Universities => Set<University>();
         public DbSet<AppUser> Users => Set<AppUser>();
         public DbSet<FypProject> FypProjects => Set<FypProject>();
         public DbSet<ExternalPaper> ExternalPapers => Set<ExternalPaper>();
@@ -54,10 +55,30 @@ namespace FypTracker.Data
                  .OnDelete(DeleteBehavior.SetNull);        // old checks stay if the user is deleted
             });
 
+            // ---------- University ----------
+            modelBuilder.Entity<University>(e =>
+            {
+                e.HasIndex(u => u.Name).IsUnique();
+                e.Property(u => u.SourceType).HasConversion<string>().HasMaxLength(20);
+
+                e.HasMany(u => u.Projects)
+                 .WithOne(p => p.University)
+                 .HasForeignKey(p => p.UniversityId)
+                 .OnDelete(DeleteBehavior.Restrict);        // a university with projects cannot be deleted
+            });
+
             // ---------- FypProject ----------
             modelBuilder.Entity<FypProject>(e =>
             {
-                e.HasIndex(p => p.Title).IsUnique();       // same rule as our "title must be unique" check
+                // Titles are NOT unique any more: different universities can use the same title.
+                e.Property(p => p.DataQuality).HasConversion<string>().HasMaxLength(20);
+
+                // The same project from the same university can be saved only once
+                e.HasIndex(p => new { p.UniversityId, p.ExternalId })
+                 .IsUnique()
+                 .HasFilter("[ExternalId] IS NOT NULL");
+
+                e.HasIndex(p => p.ContentHash);
             });
 
             // ---------- ExternalPaper ----------
@@ -97,12 +118,63 @@ namespace FypTracker.Data
                 new Department { Id = 1, Name = "Computer Science" },
                 new Department { Id = 2, Name = "Software Engineering" },
                 new Department { Id = 3, Name = "Artificial Intelligence" },
-                new Department { Id = 4, Name = "Data Science" });
+                new Department { Id = 4, Name = "Data Science" },
+                new Department { Id = 5, Name = "Other / Not specified" });   // for projects that come from other universities
+
+            modelBuilder.Entity<University>().HasData(
+                new University
+                {
+                    Id = 1,
+                    Name = "National University of Modern Languages",
+                    ShortName = "NUML",
+                    Country = "Pakistan",
+                    Website = "https://www.numl.edu.pk",
+                    SourceType = UniversitySourceType.Manual
+                },
+                new University
+                {
+                    Id = 2,
+                    Name = "Sample Data (demo, not real projects)",
+                    ShortName = "Sample",
+                    Country = "-",
+                    SourceType = UniversitySourceType.Manual
+                },
+                new University
+                {
+                    Id = 3,
+                    Name = "University of Management and Technology",
+                    ShortName = "UMT",
+                    Country = "Pakistan",
+                    Website = "https://escholar.umt.edu.pk",
+                    SourceType = UniversitySourceType.DSpace,
+                    ApiBaseUrl = "https://escholar.umt.edu.pk/server"
+                },
+                new University
+                {
+                    Id = 4,
+                    Name = "COMSATS University Islamabad, Lahore Campus",
+                    ShortName = "CUI Lahore",
+                    Country = "Pakistan",
+                    Website = "https://repository.cuilahore.edu.pk",
+                    SourceType = UniversitySourceType.DSpace,
+                    ApiBaseUrl = "https://repository.cuilahore.edu.pk/server"
+                },
+                new University
+                {
+                    Id = 5,
+                    Name = "Superior University",
+                    ShortName = "Superior",
+                    Country = "Pakistan",
+                    Website = "https://research.superior.edu.pk",
+                    SourceType = UniversitySourceType.DSpace,
+                    ApiBaseUrl = "https://research.superior.edu.pk/server"
+                });
 
             modelBuilder.Entity<FypProject>().HasData(
                 new FypProject
                 {
                     Id = 1,
+                    UniversityId = 2,
                     DepartmentId = 1,
                     Year = 2023,
                     SupervisorName = "Dr. Imran Shah",
@@ -113,6 +185,7 @@ namespace FypTracker.Data
                 new FypProject
                 {
                     Id = 2,
+                    UniversityId = 2,
                     DepartmentId = 2,
                     Year = 2022,
                     SupervisorName = "Ms. Hina Malik",
@@ -123,6 +196,7 @@ namespace FypTracker.Data
                 new FypProject
                 {
                     Id = 3,
+                    UniversityId = 2,
                     DepartmentId = 1,
                     Year = 2021,
                     SupervisorName = "Dr. Sana Iqbal",
@@ -133,6 +207,7 @@ namespace FypTracker.Data
                 new FypProject
                 {
                     Id = 4,
+                    UniversityId = 2,
                     DepartmentId = 3,
                     Year = 2024,
                     SupervisorName = "Dr. Bilal Aslam",
@@ -143,6 +218,7 @@ namespace FypTracker.Data
                 new FypProject
                 {
                     Id = 5,
+                    UniversityId = 2,
                     DepartmentId = 4,
                     Year = 2024,
                     SupervisorName = "Ms. Ayesha Noor",
@@ -153,6 +229,7 @@ namespace FypTracker.Data
                 new FypProject
                 {
                     Id = 6,
+                    UniversityId = 2,
                     DepartmentId = 3,
                     Year = 2023,
                     SupervisorName = "Dr. Farhan Ali",
@@ -163,6 +240,7 @@ namespace FypTracker.Data
                 new FypProject
                 {
                     Id = 7,
+                    UniversityId = 2,
                     DepartmentId = 2,
                     Year = 2022,
                     SupervisorName = "Mr. Usman Tariq",
@@ -173,6 +251,7 @@ namespace FypTracker.Data
                 new FypProject
                 {
                     Id = 8,
+                    UniversityId = 2,
                     DepartmentId = 4,
                     Year = 2025,
                     SupervisorName = "Dr. Sadia Khan",

@@ -47,6 +47,18 @@
                         </div>
 
                         <div class="col-md-6">
+                            <label asp-for="University" class="form-label fw-semibold"></label>
+                            <select asp-for="University" class="form-select form-select-lg">
+                                <option value="">Select university</option>
+                                @foreach (var u in (List<string>)ViewBag.Universities)
+                                {
+                                    <option value="@u">@u</option>
+                                }
+                            </select>
+                            <span asp-validation-for="University" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
                             <label asp-for="Department" class="form-label fw-semibold"></label>
                             <select asp-for="Department" class="form-select form-select-lg">
                                 <option value="">Select department</option>
@@ -58,16 +70,28 @@
                             <span asp-validation-for="Department" class="text-danger small"></span>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label asp-for="Year" class="form-label fw-semibold">Completion year</label>
                             <input asp-for="Year" type="number" class="form-control form-control-lg" />
                             <span asp-validation-for="Year" class="text-danger small"></span>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-md-8">
                             <label asp-for="SupervisorName" class="form-label fw-semibold"></label>
                             <input asp-for="SupervisorName" class="form-control form-control-lg" placeholder="e.g. Dr. Ahmed Raza" />
                             <span asp-validation-for="SupervisorName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Area" class="form-label fw-semibold"></label>
+                            <input asp-for="Area" class="form-control form-control-lg" placeholder="e.g. Computer vision" />
+                            <span asp-validation-for="Area" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="SourceUrl" class="form-label fw-semibold"></label>
+                            <input asp-for="SourceUrl" class="form-control form-control-lg" placeholder="https://..." />
+                            <span asp-validation-for="SourceUrl" class="text-danger small"></span>
                         </div>
 
                         <div class="col-12">
@@ -76,9 +100,22 @@
                                       placeholder="Explain the problem, the users, the main features and the technology."></textarea>
                             <div class="d-flex justify-content-between">
                                 <span asp-validation-for="Description" class="text-danger small"></span>
-                                <span class="form-text ms-auto"><span id="descCount">0</span> / 3000 (minimum 50)</span>
+                                <span class="form-text ms-auto"><span id="descCount">0</span> / 3000 (50 or more, or empty)</span>
                             </div>
-                            <div class="form-text">The AI compares student ideas with this text, so a clear description gives better results.</div>
+                            <div class="form-text">The AI compares student ideas with this text, so a clear description gives better results. If only the title is known, leave it empty.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input asp-for="IsAward" class="form-check-input" />
+                                <label asp-for="IsAward" class="form-check-label fw-semibold">This project won an award (show it in the top FYPs on the home page)</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="AwardText" class="form-label fw-semibold"></label>
+                            <input asp-for="AwardText" class="form-control form-control-lg" placeholder="e.g. Best FYP 2024" />
+                            <span asp-validation-for="AwardText" class="text-danger small"></span>
                         </div>
                     </div>
 
@@ -95,9 +132,7 @@
     </div>
 </section>
 
-<footer class="text-center py-4 text-muted small">
-    &copy; 2026 NUML Islamabad &bull; Advance Programming Project
-</footer>
+
 
 @section Scripts {
     <script>
@@ -107,7 +142,7 @@
         function updateCount() {
             const length = description.value.length;
             counter.textContent = length;
-            const good = length >= 50 && length <= 3000;
+            const good = length === 0 || (length >= 50 && length <= 3000);
             counter.classList.toggle('count-ok', good);
             counter.classList.toggle('count-bad', !good);
         }

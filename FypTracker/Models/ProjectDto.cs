@@ -12,6 +12,11 @@
         public string Department { get; set; } = string.Empty;
         public string SupervisorName { get; set; } = string.Empty;
         public int Year { get; set; }
+
+        public string University { get; set; } = string.Empty;
+        public string? SourceUrl { get; set; }
+        public string? Area { get; set; }
+        public bool IsTitleOnly { get; set; }
     }
 
     // /api/projects/stats ka jawab

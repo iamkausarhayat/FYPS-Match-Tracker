@@ -1,19 +1,27 @@
-﻿<header class="topbar">
+﻿<header class="topbar site-header">
     <div class="container site-nav">
         <a asp-controller="Admin" asp-action="Projects" class="brand">
-            <img src="~/images/numl-logo.png" alt="NUML logo" />
+            <partial name="_BrandMark" />
             <span class="brand-name">
-                NUML Islamabad
+                FYP Match Tracker
                 <small>Admin panel</small>
             </span>
         </a>
-        <nav class="d-flex align-items-center gap-3">
-            <partial name="_ThemeSwitcher" />
-            <a asp-controller="Admin" asp-action="Projects" class="nav-link-soft"><i class="bi bi-folder2-open"></i> Projects</a>
-            <span class="small text-muted">@User.Identity?.Name</span>
-            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                <button type="submit" class="nav-link-soft border-0 bg-transparent"><i class="bi bi-box-arrow-right"></i> Log out</button>
-            </form>
-        </nav>
+
+        <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#adminMenu"
+                aria-controls="adminMenu" aria-expanded="false" aria-label="Open menu">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <div class="nav-collapse collapse" id="adminMenu">
+            <nav class="nav-menu" aria-label="Admin">
+                <partial name="_ThemeSwitcher" />
+                <a asp-controller="Admin" asp-action="Projects" class="nav-link-soft active"><i class="bi bi-folder2-open"></i> Projects</a>
+                <span class="nav-user"><i class="bi bi-person-circle"></i> @User.Identity?.Name</span>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                    <button type="submit" class="nav-link-soft border-0 bg-transparent"><i class="bi bi-box-arrow-right"></i> Log out</button>
+                </form>
+            </nav>
+        </div>
     </div>
 </header>

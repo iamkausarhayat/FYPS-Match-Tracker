@@ -1,29 +1,45 @@
 ﻿@model MatchItemViewModel
 @{
     var finalPercent = (int)Math.Round(Model.FinalScore);
-    var cls = SimilarityRules.VerdictFor(Model.FinalScore) switch
-    {
-        "Already Done" => "done",
-        "Similar" => "similar",
-        _ => "unique"
-    };
 }
 
-<div class="match-card">
+@* data-university is used by the university filter on the result page *@
+<div class="match-card match-item" data-university="@Model.UniversityShort">
     <div class="d-flex align-items-start gap-3">
-        <div class="score-pill score-@cls">@finalPercent%</div>
+        <div class="score-pill score-@Model.ScoreClass">@finalPercent%</div>
 
         <div class="flex-grow-1">
-            @if (Model.ProjectId.HasValue)
+            <div class="mb-1">
+                @if (!string.IsNullOrWhiteSpace(Model.UniversityShort))
+                {
+                    <span class="uni-tag"><i class="bi bi-building"></i> @Model.UniversityShort</span>
+                }
+                @if (Model.Year > 0)
+                {
+                    <span class="chip">@Model.Year</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Area))
+                {
+                    <span class="chip">@Model.Area</span>
+                }
+                @if (Model.IsLowConfidence)
+                {
+                    <span class="low-conf-tag" title="This project only had a title, so the match is less reliable.">
+                        <i class="bi bi-exclamation-triangle"></i> Low confidence
+                    </span>
+                }
+            </div>
+
+            <h5 class="fw-bold mb-1">@Model.Title</h5>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Supervisor))
             {
-                <span class="source-tag source-dept"><i class="bi bi-building"></i> Department FYP</span>
+                <div class="text-muted small mb-2">Supervisor: @Model.Supervisor</div>
             }
-            else
+            else if (!string.IsNullOrWhiteSpace(Model.Authors))
             {
-                <span class="source-tag source-paper"><i class="bi bi-journal-text"></i> Research paper</span>
+                <div class="text-muted small mb-2">Authors (as listed): @Model.Authors</div>
             }
-            <h5 class="fw-bold mb-1 mt-1">@Model.Title</h5>
-            <div class="text-muted small mb-2">@Model.Detail</div>
 
             <div class="small mb-2">
                 <span class="me-3"><i class="bi bi-lightbulb"></i> Meaning <strong>@Math.Round(Model.MeaningScore)%</strong></span>
@@ -49,21 +65,28 @@
                 </div>
             }
 
-            @if (Model.ProjectId.HasValue)
-            {
-                <button type="button" class="btn-outline-brand auto-width view-fyp no-print mt-2"
-                        style="padding: .4rem 1.1rem; font-size: .88rem;"
-                        data-project-id="@Model.ProjectId">
-                    <i class="bi bi-eye"></i> View full FYP
-                </button>
-            }
+            <div class="d-flex flex-wrap gap-2 align-items-center no-print mt-2">
+                @if (Model.HasSourceUrl)
+                {
+                    <a href="@Model.SourceUrl" target="_blank" rel="noopener noreferrer"
+                       class="btn-brand auto-width open-original" style="padding: .4rem 1.1rem; font-size: .88rem;">
+                        <i class="bi bi-box-arrow-up-right"></i> Open original project
+                    </a>
+                }
+                else
+                {
+                    <span class="link-missing"><i class="bi bi-link-45deg"></i> Link not available</span>
+                }
 
-            @if (!string.IsNullOrEmpty(Model.Url))
-            {
-                <a href="@Model.Url" target="_blank" rel="noopener" class="small fw-semibold text-decoration-none">
-                    Open paper <i class="bi bi-box-arrow-up-right"></i>
-                </a>
-            }
+                @if (Model.ProjectId.HasValue)
+                {
+                    <button type="button" class="btn-outline-brand auto-width view-fyp"
+                            style="padding: .4rem 1.1rem; font-size: .88rem;"
+                            data-project-id="@Model.ProjectId">
+                        <i class="bi bi-eye"></i> Details
+                    </button>
+                }
+            </div>
         </div>
     </div>
 </div>

@@ -17,9 +17,13 @@ namespace FypTracker.Controllers
         private readonly PaperSearchService _papers;
         private readonly ILogger<CheckController> _logger;
         private readonly OcrService _ocr;
+        private readonly ISuggestionService _suggestions;
+        private readonly LiveSearchService _live;
 
-        public CheckController(SimilarityEngine engine, PaperSearchService papers, ILogger<CheckController> logger, OcrService ocr)
+        public CheckController(SimilarityEngine engine, PaperSearchService papers, ILogger<CheckController> logger, OcrService ocr, ISuggestionService suggestions, LiveSearchService live)
         {
+            _live = live;
+            _suggestions = suggestions;
             _engine = engine;
             _papers = papers;
             _logger = logger;
@@ -93,12 +97,19 @@ namespace FypTracker.Controllers
                 var title = model.Title.Trim();
                 var description = model.Description.Trim();
 
-                // 1. Department ke FYPs se comparison
-                var result = await _engine.CheckAsync(title, description, model.SupervisorName.Trim(), fileName);
+                // 0. Live search: universities se naye candidates mangwa kar database mein daalta hai.
+                //    Ye fail ho to bhi check chalta rehta hai.
+                var live = await _live.TopUpAsync(title, description);
+
+                // 1. Sab universities ke saved FYPs se comparison
+                var result = await _engine.CheckAsync(title, description, (model.SupervisorName ?? string.Empty).Trim(), fileName);
 
                 // 2. Research papers (Crossref). Yahan masla ho to bhi result bante rehta hai.
                 var paperSearch = await _papers.SearchAsync(title, description);
                 result.Papers = paperSearch.Papers;
+
+                // 3. Friendly suggestion (AI if switched on, otherwise our own template)
+                result.Suggestion = await _suggestions.CreateAsync(title, description, result);
 
                 var id = await _engine.SaveAsync(result, description, GetCurrentUserId());
 
@@ -106,6 +117,11 @@ namespace FypTracker.Controllers
                 if (paperSearch.Error != null)
                 {
                     TempData["PapersNote"] = paperSearch.Error;
+                }
+
+                if (live.Note != null)
+                {
+                    TempData["LiveNote"] = live.Note;
                 }
 
                 return RedirectToAction(nameof(Result), new { id });
@@ -129,6 +145,9 @@ namespace FypTracker.Controllers
             }
 
             var (result, ownerId) = loaded.Value;
+
+            // Old checks (before suggestions existed) have no saved suggestion: make the template one
+            result.Suggestion ??= _suggestions.CreateTemplate(result);
 
             // Login wale student ka result sirf wohi (ya Admin) dekh sakta hai.
             // Guest ka check kisi ke naam nahi hota, wo link se khul jata hai.

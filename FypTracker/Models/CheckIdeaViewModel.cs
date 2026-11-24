@@ -16,9 +16,10 @@ namespace FypTracker.Models
         [StringLength(3000, MinimumLength = 50, ErrorMessage = "Description must be 50 to 3000 characters.")]
         public string Description { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Supervisor name is required.")]
+        // Optional now: students of every university can use the app.
+        // "string?" matters: without the ? ASP.NET treats the field as required.
         [StringLength(60, MinimumLength = 3, ErrorMessage = "Supervisor name must be 3 to 60 characters.")]
         [Display(Name = "Supervisor name")]
-        public string SupervisorName { get; set; } = string.Empty;
+        public string? SupervisorName { get; set; }
     }
 }

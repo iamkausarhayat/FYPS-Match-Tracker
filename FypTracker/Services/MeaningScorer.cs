@@ -8,6 +8,8 @@ namespace FypTracker.Services
         public double RawCosine { get; set; }
         public double TitleCosine { get; set; }
         public double DescriptionCosine { get; set; }
+        public double CoverageCosine { get; set; }
+        public double BestPairCosine { get; set; }
         public string BestPassage { get; set; } = string.Empty;   // the passage of B that matched best
     }
 
@@ -38,7 +40,12 @@ namespace FypTracker.Services
             };
         }
 
-        // Two fingerprints -> meaning score. Pure math, needs no AI model, so it is fast.
+        // A = the student's idea, B = one project from the database.
+        // Pure math, needs no AI model, so it is fast.
+        //
+        // Important: the question is "how much of the STUDENT's idea already exists in B?"
+        // We do NOT average B's chunks against A. A long project has many chunks that are about
+        // other things, and averaging them used to pull even a copied paragraph down to about 30%.
         public static MeaningResult Compare(TextFingerprint a, TextFingerprint b)
         {
             if (a.ChunkVectors.Count == 0 || b.ChunkVectors.Count == 0)
@@ -46,22 +53,25 @@ namespace FypTracker.Services
                 return new MeaningResult();
             }
 
-            double titleCosine = VectorMath.Cosine(a.TitleVector, b.TitleVector);
+            double titleCosine = Math.Max(0, VectorMath.Cosine(a.TitleVector, b.TitleVector));
 
-            // For every chunk of A find its best partner in B. Also remember the best pair of all.
             double bestPair = double.MinValue;
             int bestPartnerInB = 0;
-            double sumAToB = 0;
+            double sumBest = 0;
 
-            foreach (var chunkA in a.ChunkVectors)
+            // For every chunk of A find its best partner in B.
+            for (int i = 0; i < a.ChunkVectors.Count; i++)
             {
                 double best = double.MinValue;
 
                 for (int j = 0; j < b.ChunkVectors.Count; j++)
                 {
-                    double cosine = VectorMath.Cosine(chunkA, b.ChunkVectors[j]);
+                    double cosine = VectorMath.Cosine(a.ChunkVectors[i], b.ChunkVectors[j]);
 
-                    if (cosine > best) best = cosine;
+                    if (cosine > best)
+                    {
+                        best = cosine;
+                    }
 
                     if (cosine > bestPair)
                     {
@@ -70,26 +80,14 @@ namespace FypTracker.Services
                     }
                 }
 
-                sumAToB += best;
+                sumBest += best;
             }
 
-            // The same thing the other way round, so long and short texts are treated fairly.
-            double sumBToA = 0;
-
-            foreach (var chunkB in b.ChunkVectors)
-            {
-                double best = double.MinValue;
-
-                foreach (var chunkA in a.ChunkVectors)
-                {
-                    best = Math.Max(best, VectorMath.Cosine(chunkB, chunkA));
-                }
-
-                sumBToA += best;
-            }
+            double coverage = sumBest / a.ChunkVectors.Count;
 
             double descriptionCosine =
-                (sumAToB / a.ChunkVectors.Count + sumBToA / b.ChunkVectors.Count) / 2;
+                SimilarityRules.CoverageWeight * coverage +
+                SimilarityRules.BestPairWeight * bestPair;
 
             double rawCosine =
                 SimilarityRules.TitleWeight * titleCosine +
@@ -101,6 +99,8 @@ namespace FypTracker.Services
                 RawCosine = rawCosine,
                 TitleCosine = titleCosine,
                 DescriptionCosine = descriptionCosine,
+                CoverageCosine = coverage,
+                BestPairCosine = bestPair,
                 BestPassage = b.ChunkTexts[bestPartnerInB]
             };
         }

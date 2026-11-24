@@ -3,8 +3,10 @@
 @{
     ViewData["Title"] = "Your result";
     var top = Model.TopMatch;
-    var sources = Model.PaperMatches.Any() ? "previous FYPs and research papers" : "previous FYPs";
+    var others = Model.OtherMatches;
+    var filterNames = Model.UniversityFilterNames;
     var papersNote = TempData["PapersNote"] as string;
+    var liveNote = TempData["LiveNote"] as string;
 
     // Yeh data "Download PDF" button ke liye page mein rakha jata hai (browser PDF khud banata hai)
     var reportJson = JsonSerializer.Serialize(new
@@ -16,6 +18,8 @@
         verdictClass = Model.VerdictClass,
         percent = Model.OverallPercent,
         advice = Model.Advice,
+        tips = Model.Suggestion?.Tips ?? new List<string>(),
+        coverage = Model.CoverageText,
         meaningWeight = (int)Math.Round(SimilarityRules.MeaningWeight * 100),
         wordWeight = (int)Math.Round(SimilarityRules.WordWeight * 100),
         top = top == null ? null : new
@@ -25,13 +29,15 @@
             word = Math.Round(top.WordScore),
             overall = Math.Round(top.FinalScore)
         },
-        matches = Model.DepartmentMatches
+        matches = Model.ProjectMatches
             .OrderByDescending(m => m.FinalScore)
-            .Take(3)
+            .Take(5)
             .Select(m => new
             {
                 title = m.Title,
                 detail = m.Detail,
+                url = m.SourceUrl,
+                lowConfidence = m.IsLowConfidence,
                 meaning = Math.Round(m.MeaningScore),
                 word = Math.Round(m.WordScore),
                 overall = Math.Round(m.FinalScore),
@@ -48,7 +54,7 @@
     <div class="container">
         <h1 class="fw-bold mb-2">Your similarity report</h1>
         <p class="lead mb-0" style="opacity: .9;">
-            Here is how your idea compares with the department's @sources.
+            Here is how your idea compares with final year projects from different universities.
         </p>
     </div>
 </section>
@@ -57,7 +63,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-10">
 
-            <!-- Summary -->
+            <!-- 1. Verdict and score -->
             <div class="step-card result-summary verdict-@Model.VerdictClass">
                 <div class="row align-items-center g-4">
                     <div class="col-md-4 text-center">
@@ -72,42 +78,158 @@
                     <div class="col-md-8">
                         <span class="verdict-pill">@Model.Verdict</span>
                         <h3 class="fw-bold mt-2 mb-1">@Model.Title</h3>
-                        <p class="text-muted small mb-3">
-                            Supervisor: @Model.SupervisorName
-                            @if (!string.IsNullOrWhiteSpace(Model.FileName))
-                            {
-                                <span>&bull; File: @Model.FileName</span>
-                            }
-                        </p>
-                        <p class="mb-3">@Model.Advice</p>
 
-                        @if (top != null)
+                        @if (!string.IsNullOrWhiteSpace(Model.SupervisorName) || !string.IsNullOrWhiteSpace(Model.FileName))
                         {
-                            <div class="d-flex justify-content-between small">
-                                <span>Meaning match <span class="text-muted">(@Math.Round(SimilarityRules.MeaningWeight * 100)% of the score)</span></span>
-                                <strong>@Math.Round(top.MeaningScore)%</strong>
-                            </div>
-                            <div class="meter mb-2" role="progressbar" aria-label="Meaning match" aria-valuenow="@Math.Round(top.MeaningScore)" aria-valuemin="0" aria-valuemax="100">
-                                <span style="width:@Math.Round(top.MeaningScore)%"></span>
-                            </div>
+                            <p class="text-muted small mb-3">
+                                @if (!string.IsNullOrWhiteSpace(Model.SupervisorName))
+                                {
+                                    <span>Supervisor: @Model.SupervisorName</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.FileName))
+                                {
+                                    <span>@(string.IsNullOrWhiteSpace(Model.SupervisorName) ? "" : " • ")File: @Model.FileName</span>
+                                }
+                            </p>
+                        }
 
-                            <div class="d-flex justify-content-between small">
-                                <span>Word match <span class="text-muted">(@Math.Round(SimilarityRules.WordWeight * 100)% of the score)</span></span>
-                                <strong>@Math.Round(top.WordScore)%</strong>
-                            </div>
-                            <div class="meter mb-3" role="progressbar" aria-label="Word match" aria-valuenow="@Math.Round(top.WordScore)" aria-valuemin="0" aria-valuemax="100">
-                                <span style="width:@Math.Round(top.WordScore)%"></span>
-                            </div>
+                        <p class="mb-2">
+                            <strong>0 to @SimilarityRules.SimilarFrom%</strong> Unique &bull;
+                            <strong>@SimilarityRules.SimilarFrom to @SimilarityRules.AlreadyDoneFrom%</strong> Similar &bull;
+                            <strong>@SimilarityRules.AlreadyDoneFrom% and above</strong> Already Done
+                        </p>
 
-                            <p class="small text-muted mb-0">Closest match: <strong>@top.Title</strong></p>
+                        <div class="coverage-note">
+                            <i class="bi bi-diagram-3"></i> @Model.CoverageText
+                            This is not a guarantee: projects from universities that do not publish their list are not included.
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(liveNote))
+                        {
+                            <div class="coverage-note mt-2">
+                                <i class="bi bi-broadcast"></i> @liveNote
+                            </div>
                         }
                     </div>
                 </div>
             </div>
 
-            <!-- How the score is calculated -->
+            <!-- 2. The project that decided the verdict -->
             @if (top != null)
             {
+                <div class="featured-card verdict-@Model.VerdictClass">
+                    <span class="featured-label">
+                        <i class="bi bi-bullseye"></i>
+                        @(Model.Verdict == "Unique" ? "Closest project we found" : "The project behind this score")
+                    </span>
+
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="score-pill score-@top.ScoreClass">@Math.Round(top.FinalScore)%</div>
+
+                        <div class="flex-grow-1">
+                            <div class="mb-1">
+                                @if (!string.IsNullOrWhiteSpace(top.UniversityShort))
+                                {
+                                    <span class="uni-tag"><i class="bi bi-building"></i> @top.UniversityShort</span>
+                                }
+                                @if (top.Year > 0)
+                                {
+                                    <span class="chip">@top.Year</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(top.Area))
+                                {
+                                    <span class="chip">@top.Area</span>
+                                }
+                                @if (top.IsLowConfidence)
+                                {
+                                    <span class="low-conf-tag"><i class="bi bi-exclamation-triangle"></i> Low confidence</span>
+                                }
+                            </div>
+
+                            <h4 class="fw-bold mb-1">@top.Title</h4>
+
+                            @if (!string.IsNullOrWhiteSpace(top.UniversityName))
+                            {
+                                <div class="text-muted small">@top.UniversityName</div>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(top.Supervisor))
+                            {
+                                <div class="text-muted small">Supervisor: @top.Supervisor</div>
+                            }
+                            else if (!string.IsNullOrWhiteSpace(top.Authors))
+                            {
+                                <div class="text-muted small">Authors (as listed): @top.Authors</div>
+                            }
+
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between small">
+                                    <span>Meaning match <span class="text-muted">(@Math.Round(SimilarityRules.MeaningWeight * 100)% of the score)</span></span>
+                                    <strong>@Math.Round(top.MeaningScore)%</strong>
+                                </div>
+                                <div class="meter mb-2" role="progressbar" aria-label="Meaning match" aria-valuenow="@Math.Round(top.MeaningScore)" aria-valuemin="0" aria-valuemax="100">
+                                    <span style="width:@Math.Round(top.MeaningScore)%"></span>
+                                </div>
+
+                                <div class="d-flex justify-content-between small">
+                                    <span>Word match <span class="text-muted">(@Math.Round(SimilarityRules.WordWeight * 100)% of the score)</span></span>
+                                    <strong>@Math.Round(top.WordScore)%</strong>
+                                </div>
+                                <div class="meter mb-3" role="progressbar" aria-label="Word match" aria-valuenow="@Math.Round(top.WordScore)" aria-valuemin="0" aria-valuemax="100">
+                                    <span style="width:@Math.Round(top.WordScore)%"></span>
+                                </div>
+                            </div>
+
+                            @if (top.CommonKeywords.Count > 0)
+                            {
+                                <div class="mb-2">
+                                    <span class="small text-muted me-1">Why it matched, common keywords:</span>
+                                    @foreach (var word in top.CommonKeywords)
+                                    {
+                                        <span class="chip">@word</span>
+                                    }
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(top.BestPassage))
+                            {
+                                <div class="quote">
+                                    <span class="small text-muted d-block mb-1">Most similar part of that project</span>
+                                    @top.BestPassage
+                                </div>
+                            }
+
+                            @if (top.IsLowConfidence)
+                            {
+                                <p class="small mb-2" style="color: var(--warn);">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Low confidence: only the title of this project was available, so please open it and read it yourself.
+                                </p>
+                            }
+
+                            <div class="d-flex flex-wrap gap-2 align-items-center no-print mt-2">
+                                @if (top.HasSourceUrl)
+                                {
+                                    <a href="@top.SourceUrl" target="_blank" rel="noopener noreferrer" class="btn-brand auto-width open-original">
+                                        <i class="bi bi-box-arrow-up-right"></i> Open original project
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="link-missing"><i class="bi bi-link-45deg"></i> Link not available for this project</span>
+                                }
+
+                                @if (top.ProjectId.HasValue)
+                                {
+                                    <button type="button" class="btn-outline-brand auto-width view-fyp" data-project-id="@top.ProjectId">
+                                        <i class="bi bi-eye"></i> Details
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How the score is calculated -->
                 <div class="formula mb-4">
                     <div class="fw-semibold mb-1"><i class="bi bi-calculator"></i> How this score is calculated</div>
                     <div class="small">
@@ -120,19 +242,79 @@
                     </div>
                 </div>
             }
-
-            <!-- Department FYPs -->
-            <h4 class="section-title mt-4 mb-3"><i class="bi bi-building"></i> Closest department FYPs</h4>
-            @if (Model.DepartmentMatches.Any())
+            else
             {
-                @foreach (var item in Model.DepartmentMatches.OrderByDescending(m => m.FinalScore).Take(3))
+                <p class="text-muted">No projects were available to compare with.</p>
+            }
+
+            <!-- 3. Other matching projects, with a university filter -->
+            <h4 class="section-title mt-4 mb-2"><i class="bi bi-collection"></i> Other matching projects</h4>
+            @if (others.Any())
+            {
+                @if (Model.Verdict == "Unique")
                 {
-                    <partial name="_MatchCard" model="item" />
+                    <p class="small text-muted">
+                        Projects with a score below @SimilarityRules.SimilarFrom% are shown too, so you can see the closest ideas.
+                    </p>
                 }
+
+                @if (filterNames.Count > 1)
+                {
+                    <div class="filter-bar no-print">
+                        <label for="uniFilter" class="fw-semibold small mb-0"><i class="bi bi-funnel"></i> University</label>
+                        <select id="uniFilter" class="form-select form-select-sm">
+                            <option value="">All universities</option>
+                            @foreach (var name in filterNames)
+                            {
+                                <option value="@name">@name</option>
+                            }
+                        </select>
+                        <span id="filterCount" class="small text-muted ms-auto" role="status">Showing @others.Count of @others.Count</span>
+                    </div>
+                }
+
+                <div id="matchList">
+                    @foreach (var item in others)
+                    {
+                        <partial name="_MatchCard" model="item" />
+                    }
+                </div>
+                <p id="noFilterMatch" class="text-muted d-none">No matching projects from this university.</p>
             }
             else
             {
-                <p class="text-muted">No department projects were available to compare with.</p>
+                <p class="text-muted">No other projects were available to compare with.</p>
+            }
+
+            <!-- 4. Suggestion -->
+            @if (Model.Suggestion != null)
+            {
+                <div class="suggestion-box verdict-@Model.VerdictClass">
+                    <div class="suggestion-title mb-1"><i class="bi bi-lightbulb"></i> Our suggestion</div>
+                    <p class="fw-bold mb-1">@Model.Suggestion.Headline</p>
+                    <p class="mb-2">@Model.Suggestion.Message</p>
+
+                    @if (Model.Suggestion.Tips.Count > 0)
+                    {
+                        <ul class="mb-2 ps-3">
+                            @foreach (var tip in Model.Suggestion.Tips)
+                            {
+                                <li>@tip</li>
+                            }
+                        </ul>
+                    }
+
+                    <p class="small text-muted mb-0">
+                        @if (Model.Suggestion.IsAi)
+                        {
+                            <span><i class="bi bi-stars"></i> Written by an AI helper, using your idea and the closest projects. Please check it with your supervisor.</span>
+                        }
+                        else
+                        {
+                            <span><i class="bi bi-info-circle"></i> Based on your idea and the closest projects. Please check it with your supervisor.</span>
+                        }
+                    </p>
+                </div>
             }
 
             <!-- Research papers (Crossref): sirf padhne ke liye, in ka percentage nahi nikalta -->
@@ -196,25 +378,26 @@
 
 <script id="reportData" type="application/json">@Html.Raw(reportJson)</script>
 
-<!-- Pop-up: poora FYP dekhne ke liye (data /api/projects/{id} se aata hai) -->
+<!-- Pop-up: project ki details dekhne ke liye (data /api/projects/{id} se aata hai) -->
 <div class="modal fade" id="fypModal" tabindex="-1" aria-labelledby="fypModalTitle" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="fypModalTitle"><i class="bi bi-building"></i> Department FYP</h5>
+                <h5 class="modal-title" id="fypModalTitle"><i class="bi bi-building"></i> Project details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div id="fypLoading" class="text-center py-4">
                     <div class="spinner-border text-primary" aria-hidden="true"></div>
-                    <div class="small text-muted mt-2">Loading the full FYP...</div>
+                    <div class="small text-muted mt-2">Loading the project...</div>
                 </div>
                 <div id="fypError" class="alert alert-danger d-none" role="alert"></div>
                 <div id="fypContent" class="d-none">
                     <h4 id="fypTitle" class="fw-bold mb-2 text-break"></h4>
                     <div id="fypMeta" class="mb-3"></div>
-                    <h6 class="fw-bold">What this FYP is about</h6>
+                    <h6 class="fw-bold">What this project is about</h6>
                     <p id="fypDescription" class="mb-0 text-break" style="white-space: pre-line;"></p>
+                    <div id="fypLink" class="mt-3"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -224,9 +407,7 @@
     </div>
 </div>
 
-<footer class="text-center py-4 text-muted small">
-    &copy; 2026 NUML Islamabad &bull; Advance Programming Project
-</footer>
+
 
 @section Scripts {
     <script src="~/lib/jspdf/jspdf.umd.min.js"></script>
@@ -334,8 +515,9 @@
 
             // ----- Title, supervisor, file -----
             write(data.title, { size: 16, style: 'bold', after: 4 });
-            write('Supervisor: ' + data.supervisor, { size: 10, color: MUTED, after: 1 });
+            if (data.supervisor) { write('Supervisor: ' + data.supervisor, { size: 10, color: MUTED, after: 1 }); }
             if (data.fileName) { write('File: ' + data.fileName, { size: 10, color: MUTED, after: 1 }); }
+            if (data.coverage) { write(data.coverage, { size: 9, color: MUTED, after: 1 }); }
             y += 10;
 
             // ----- Verdict box -----
@@ -373,15 +555,23 @@
                 write('Closest match: ' + data.top.title, { size: 9, color: MUTED, after: 2 });
             }
 
+            // ----- Suggestion -----
+            if (data.tips && data.tips.length) {
+                heading('Our suggestion');
+                data.tips.forEach(function (tip) { write('- ' + tip, { size: 10, after: 3 }); });
+            }
+
             // ----- Department FYPs -----
-            heading('Closest department FYPs');
+            heading('Closest projects');
             if (data.matches.length === 0) {
-                write('No department projects were available to compare with.', { color: MUTED });
+                write('No projects were available to compare with.', { color: MUTED });
             }
             data.matches.forEach(function (m, index) {
                 ensure(80);
                 write((index + 1) + '. ' + m.title, { size: 11, style: 'bold', after: 2 });
                 write(m.detail, { size: 9, color: MUTED, after: 2 });
+                if (m.lowConfidence) { write('Low confidence: only the title of this project was available.', { size: 9, color: MUTED, after: 2 }); }
+                if (m.url) { write(m.url, { size: 8, color: [37, 99, 235], url: m.url, after: 2 }); }
                 write('Overall ' + m.overall + '%   |   Meaning ' + m.meaning + '%   |   Words ' + m.word + '%',
                       { size: 9, style: 'bold', color: accent, after: 3 });
                 if (m.keywords && m.keywords.length) {
@@ -420,7 +610,7 @@
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(8);
                 doc.setTextColor(MUTED[0], MUTED[1], MUTED[2]);
-                doc.text('Generated by FYP Match Tracker  |  NUML Islamabad', M, H - 28);
+                doc.text('Generated by FYP Match Tracker', M, H - 28);
                 doc.text('Page ' + i + ' of ' + pages, W - M, H - 28, { align: 'right' });
             }
 
@@ -448,7 +638,29 @@
                 }
             });
 
-            // ---------- View full FYP (pop-up) ----------
+            // ---------- University filter (works instantly, no server call) ----------
+            const uniFilter = document.getElementById('uniFilter');
+            if (uniFilter) {
+                const items = Array.from(document.querySelectorAll('#matchList .match-item'));
+                const countBox = document.getElementById('filterCount');
+                const emptyBox = document.getElementById('noFilterMatch');
+
+                uniFilter.addEventListener('change', function () {
+                    const wanted = uniFilter.value;
+                    let shown = 0;
+
+                    items.forEach(function (item) {
+                        const show = !wanted || item.getAttribute('data-university') === wanted;
+                        item.classList.toggle('d-none', !show);
+                        if (show) { shown++; }
+                    });
+
+                    countBox.textContent = 'Showing ' + shown + ' of ' + items.length;
+                    emptyBox.classList.toggle('d-none', shown !== 0);
+                });
+            }
+
+            // ---------- View project details (pop-up) ----------
             const modalElement = document.getElementById('fypModal');
             const loading = document.getElementById('fypLoading');
             const errorBox = document.getElementById('fypError');
@@ -456,6 +668,7 @@
             const titleBox = document.getElementById('fypTitle');
             const metaBox = document.getElementById('fypMeta');
             const descriptionBox = document.getElementById('fypDescription');
+            const linkBox = document.getElementById('fypLink');
             const apiBase = '@Url.Content("~/api/projects")';
             const fypModal = new bootstrap.Modal(modalElement);
             let requestNumber = 0;   // purana jawab der se aaye to ignore karne ke liye
@@ -488,16 +701,32 @@
                     titleBox.textContent = project.title;
                     descriptionBox.textContent = project.description;
                     metaBox.innerHTML = '';
+                    if (project.university) { addChip(project.university); }
                     addChip(project.department);
                     addChip(String(project.year));
-                    addChip('Supervisor: ' + project.supervisorName);
+                    if (project.supervisorName) { addChip('Supervisor: ' + project.supervisorName); }
+                    if (project.isTitleOnly) { addChip('Low confidence: title only'); }
+
+                    // Original project link (only real http / https links)
+                    linkBox.innerHTML = '';
+                    if (project.sourceUrl && /^https?:\/\//i.test(project.sourceUrl)) {
+                        const link = document.createElement('a');
+                        link.href = project.sourceUrl;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.className = 'btn-brand auto-width';
+                        link.textContent = 'Open original project';
+                        linkBox.appendChild(link);
+                    } else {
+                        linkBox.textContent = 'Link not available for this project.';
+                    }
 
                     loading.classList.add('d-none');
                     content.classList.remove('d-none');
                 } catch (error) {
                     if (mine !== requestNumber) { return; }
                     loading.classList.add('d-none');
-                    errorBox.textContent = 'This FYP could not be loaded. It may have been removed. Please try again.';
+                    errorBox.textContent = 'This project could not be loaded. It may have been removed. Please try again.';
                     errorBox.classList.remove('d-none');
                 }
             });

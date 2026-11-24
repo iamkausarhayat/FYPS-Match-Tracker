@@ -33,6 +33,7 @@ namespace FypTracker.Controllers
                 {
                     filtered = filtered.Where(p =>
                         p.Title.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                        p.University.Contains(q, StringComparison.OrdinalIgnoreCase) ||
                         p.SupervisorName.Contains(q, StringComparison.OrdinalIgnoreCase));
                 }
 
@@ -66,9 +67,9 @@ namespace FypTracker.Controllers
 
         // GET: /Admin/Create -> empty form
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View("ProjectForm", new ProjectFormViewModel { Year = DateTime.Now.Year });
+            return await FormViewAsync(new ProjectFormViewModel { Year = DateTime.Now.Year });
         }
 
         // POST: /Admin/Create -> Save button
@@ -78,20 +79,20 @@ namespace FypTracker.Controllers
         {
             try
             {
-                if (await TitleExistsAsync(model.Title, model.Id))
+                if (await _projects.TitleExistsAsync(model.Title, model.University, model.Id))
                 {
-                    ModelState.AddModelError(nameof(model.Title), "A project with this title already exists.");
+                    ModelState.AddModelError(nameof(model.Title), "This university already has a project with this title.");
                 }
 
                 if (!ModelState.IsValid)
                 {
-                    return View("ProjectForm", model);
+                    return await FormViewAsync(model);
                 }
 
                 if (!await _projects.AddAsync(ToProject(model)))
                 {
-                    ModelState.AddModelError(nameof(model.Department), "This department was not found.");
-                    return View("ProjectForm", model);
+                    ModelState.AddModelError(nameof(model.Department), "This department or university was not found.");
+                    return await FormViewAsync(model);
                 }
             }
             catch (Exception ex)
@@ -99,7 +100,7 @@ namespace FypTracker.Controllers
                 // Database ya AI model (fingerprint banate waqt) fail ho to form wapas aata hai
                 _logger.LogError(ex, "Could not add a project");
                 ModelState.AddModelError(string.Empty, "The project could not be saved. Please try again in a moment.");
-                return View("ProjectForm", model);
+                return await FormViewAsync(model);
             }
 
             TempData["Success"] = "Project added successfully.";
@@ -118,14 +119,19 @@ namespace FypTracker.Controllers
                     return NotFound();   // shows our 404 page
                 }
 
-                return View("ProjectForm", new ProjectFormViewModel
+                return await FormViewAsync(new ProjectFormViewModel
                 {
                     Id = project.Id,
                     Title = project.Title,
+                    University = project.University,
                     Department = project.Department,
                     SupervisorName = project.SupervisorName,
                     Year = project.Year,
-                    Description = project.Description
+                    Description = project.Description,
+                    SourceUrl = project.SourceUrl,
+                    Area = project.Area,
+                    IsAward = project.IsAward,
+                    AwardText = project.AwardText
                 });
             }
             catch (Exception ex)
@@ -143,14 +149,14 @@ namespace FypTracker.Controllers
         {
             try
             {
-                if (await TitleExistsAsync(model.Title, model.Id))
+                if (await _projects.TitleExistsAsync(model.Title, model.University, model.Id))
                 {
-                    ModelState.AddModelError(nameof(model.Title), "Another project already uses this title.");
+                    ModelState.AddModelError(nameof(model.Title), "Another project of this university already uses this title.");
                 }
 
                 if (!ModelState.IsValid)
                 {
-                    return View("ProjectForm", model);
+                    return await FormViewAsync(model);
                 }
 
                 if (!await _projects.UpdateAsync(ToProject(model)))
@@ -162,7 +168,7 @@ namespace FypTracker.Controllers
             {
                 _logger.LogError(ex, "Could not update project {Id}", model.Id);
                 ModelState.AddModelError(string.Empty, "The changes could not be saved. Please try again in a moment.");
-                return View("ProjectForm", model);
+                return await FormViewAsync(model);
             }
 
             TempData["Success"] = "Project updated successfully.";
@@ -228,15 +234,20 @@ namespace FypTracker.Controllers
 
         // ---------- helpers ----------
 
-        // Is there already another project with the same title?
-        private async Task<bool> TitleExistsAsync(string title, int ignoreId)
+        // Add/Edit form dikhata hai, university ki list ke saath
+        private async Task<IActionResult> FormViewAsync(ProjectFormViewModel model)
         {
-            var clean = (title ?? string.Empty).Trim();
-            var all = await _projects.GetAllAsync();
+            try
+            {
+                ViewBag.Universities = await _projects.GetUniversityNamesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Could not load the university list");
+                ViewBag.Universities = new List<string>();
+            }
 
-            return all.Any(p =>
-                p.Id != ignoreId &&
-                string.Equals(p.Title, clean, StringComparison.OrdinalIgnoreCase));
+            return View("ProjectForm", model);
         }
 
         // Copy form values into a data object
@@ -246,10 +257,15 @@ namespace FypTracker.Controllers
             {
                 Id = model.Id,
                 Title = model.Title.Trim(),
+                University = model.University,
                 Department = model.Department,
-                SupervisorName = model.SupervisorName.Trim(),
+                SupervisorName = (model.SupervisorName ?? string.Empty).Trim(),
                 Year = model.Year,
-                Description = model.Description.Trim()
+                Description = (model.Description ?? string.Empty).Trim(),
+                SourceUrl = model.SourceUrl,
+                Area = model.Area,
+                IsAward = model.IsAward,
+                AwardText = model.AwardText
             };
         }
     }

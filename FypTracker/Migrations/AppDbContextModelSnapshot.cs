@@ -117,6 +117,11 @@ namespace FypTracker.Migrations
                         {
                             Id = 4,
                             Name = "Data Science"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Other / Not specified"
                         });
                 });
 
@@ -178,16 +183,37 @@ namespace FypTracker.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Area")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("AuthorsText")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("AwardText")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ContentHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("DataQuality")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("DepartmentId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(3000)
-                        .HasColumnType("nvarchar(3000)");
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<string>("EmbeddingJson")
                         .HasColumnType("nvarchar(max)");
@@ -196,25 +222,45 @@ namespace FypTracker.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsAward")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastFetchedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("SupervisorName")
                         .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("UniversityId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Year")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ContentHash");
+
                     b.HasIndex("DepartmentId");
 
-                    b.HasIndex("Title")
-                        .IsUnique();
+                    b.HasIndex("UniversityId", "ExternalId")
+                        .IsUnique()
+                        .HasFilter("[ExternalId] IS NOT NULL");
 
                     b.ToTable("FypProjects");
 
@@ -223,80 +269,104 @@ namespace FypTracker.Migrations
                         {
                             Id = 1,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DataQuality = "Full",
                             DepartmentId = 1,
                             Description = "Identifies each student from a live camera feed and records presence in the class register automatically, so teachers no longer call the roll.",
+                            IsAward = false,
                             SupervisorName = "Dr. Imran Shah",
                             Title = "Automated Class Presence System with Camera-Based Student Identification",
+                            UniversityId = 2,
                             Year = 2023
                         },
                         new
                         {
                             Id = 2,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DataQuality = "Full",
                             DepartmentId = 2,
                             Description = "A web portal that stores student records and lets teachers update attendance and marks, while students view their results online.",
+                            IsAward = false,
                             SupervisorName = "Ms. Hina Malik",
                             Title = "Online Student Management Portal",
+                            UniversityId = 2,
                             Year = 2022
                         },
                         new
                         {
                             Id = 3,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DataQuality = "Full",
                             DepartmentId = 1,
                             Description = "Students reserve a study seat in advance, and the app releases the seat automatically if they do not arrive on time.",
+                            IsAward = false,
                             SupervisorName = "Dr. Sana Iqbal",
                             Title = "Library Seat Booking App",
+                            UniversityId = 2,
                             Year = 2021
                         },
                         new
                         {
                             Id = 4,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DataQuality = "Full",
                             DepartmentId = 3,
                             Description = "Farmers photograph a leaf and a trained model names the likely disease and suggests a treatment, even with a weak internet connection.",
+                            IsAward = false,
                             SupervisorName = "Dr. Bilal Aslam",
                             Title = "Crop Disease Detection from Leaf Photos",
+                            UniversityId = 2,
                             Year = 2024
                         },
                         new
                         {
                             Id = 5,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DataQuality = "Full",
                             DepartmentId = 4,
                             Description = "Predicts which patients are likely to miss an appointment and sends them reminders, helping clinics reduce empty time slots.",
+                            IsAward = false,
                             SupervisorName = "Ms. Ayesha Noor",
                             Title = "Hospital Appointment Reminder and No-Show Predictor",
+                            UniversityId = 2,
                             Year = 2024
                         },
                         new
                         {
                             Id = 6,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DataQuality = "Full",
                             DepartmentId = 3,
                             Description = "A voice-guided mobile app that describes routes between campus buildings and warns users about obstacles and stairs.",
+                            IsAward = false,
                             SupervisorName = "Dr. Farhan Ali",
                             Title = "Campus Navigation Assistant for Visually Impaired Students",
+                            UniversityId = 2,
                             Year = 2023
                         },
                         new
                         {
                             Id = 7,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DataQuality = "Full",
                             DepartmentId = 2,
                             Description = "Restaurants list surplus meals at a discount and nearby users reserve them, so edible food is not thrown away at closing time.",
+                            IsAward = false,
                             SupervisorName = "Mr. Usman Tariq",
                             Title = "Food Waste Reduction Platform for Local Restaurants",
+                            UniversityId = 2,
                             Year = 2022
                         },
                         new
                         {
                             Id = 8,
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DataQuality = "Full",
                             DepartmentId = 4,
                             Description = "Uses past bus timings and weather data to predict delays and suggests the fastest route for daily commuters.",
+                            IsAward = false,
                             SupervisorName = "Dr. Sadia Khan",
                             Title = "Public Transport Delay Prediction and Route Planner",
+                            UniversityId = 2,
                             Year = 2025
                         });
                 });
@@ -312,6 +382,12 @@ namespace FypTracker.Migrations
                     b.Property<DateTime>("CheckedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("ComparedProjectCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ComparedUniversityCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(3000)
@@ -323,6 +399,9 @@ namespace FypTracker.Migrations
 
                     b.Property<double>("OverallScore")
                         .HasColumnType("float");
+
+                    b.Property<string>("SuggestionJson")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SupervisorName")
                         .IsRequired()
@@ -404,6 +483,99 @@ namespace FypTracker.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FypTracker.Entities.University", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ApiBaseUrl")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ShortName")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Universities");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Country = "Pakistan",
+                            Name = "National University of Modern Languages",
+                            ShortName = "NUML",
+                            SourceType = "Manual",
+                            Website = "https://www.numl.edu.pk"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Country = "-",
+                            Name = "Sample Data (demo, not real projects)",
+                            ShortName = "Sample",
+                            SourceType = "Manual"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            ApiBaseUrl = "https://escholar.umt.edu.pk/server",
+                            Country = "Pakistan",
+                            Name = "University of Management and Technology",
+                            ShortName = "UMT",
+                            SourceType = "DSpace",
+                            Website = "https://escholar.umt.edu.pk"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            ApiBaseUrl = "https://repository.cuilahore.edu.pk/server",
+                            Country = "Pakistan",
+                            Name = "COMSATS University Islamabad, Lahore Campus",
+                            ShortName = "CUI Lahore",
+                            SourceType = "DSpace",
+                            Website = "https://repository.cuilahore.edu.pk"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            ApiBaseUrl = "https://research.superior.edu.pk/server",
+                            Country = "Pakistan",
+                            Name = "Superior University",
+                            ShortName = "Superior",
+                            SourceType = "DSpace",
+                            Website = "https://research.superior.edu.pk"
+                        });
+                });
+
             modelBuilder.Entity("FypTracker.Entities.AppUser", b =>
                 {
                     b.HasOne("FypTracker.Entities.Department", "Department")
@@ -422,7 +594,15 @@ namespace FypTracker.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("FypTracker.Entities.University", "University")
+                        .WithMany("Projects")
+                        .HasForeignKey("UniversityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Department");
+
+                    b.Navigation("University");
                 });
 
             modelBuilder.Entity("FypTracker.Entities.SimilarityCheck", b =>
@@ -485,6 +665,11 @@ namespace FypTracker.Migrations
             modelBuilder.Entity("FypTracker.Entities.SimilarityCheck", b =>
                 {
                     b.Navigation("Matches");
+                });
+
+            modelBuilder.Entity("FypTracker.Entities.University", b =>
+                {
+                    b.Navigation("Projects");
                 });
 #pragma warning restore 612, 618
         }

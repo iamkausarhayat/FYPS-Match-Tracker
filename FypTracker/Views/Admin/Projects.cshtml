@@ -63,7 +63,7 @@
     <form method="get" asp-action="Projects" class="row g-2 mb-3">
         <div class="col-md-6">
             <input type="search" name="q" value="@Model.Query" class="form-control form-control-lg"
-                   placeholder="Search by title or supervisor" aria-label="Search projects" />
+                   placeholder="Search by title, supervisor or university" aria-label="Search projects" />
         </div>
         <div class="col-md-4">
             <select name="department" class="form-select form-select-lg" aria-label="Filter by department">
@@ -96,9 +96,10 @@
                     <thead>
                         <tr>
                             <th>Title</th>
-                            <th>Department</th>
-                            <th>Supervisor</th>
-                            <th>Year</th>
+                            <th class="d-none d-md-table-cell">University</th>
+                            <th class="d-none d-md-table-cell">Department</th>
+                            <th class="d-none d-md-table-cell">Supervisor</th>
+                            <th class="d-none d-md-table-cell">Year</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -106,13 +107,30 @@
                         @foreach (var p in Model.Projects)
                         {
                             <tr>
-                                <td style="min-width: 260px;">
-                                    <div class="fw-semibold">@p.Title</div>
-                                    <div class="small text-muted">@(p.Description.Length > 90 ? p.Description[..90] + "..." : p.Description)</div>
+                                <td class="proj-title-cell">
+                                    <div class="fw-semibold">
+                                        @if (p.IsAward) { <span class="award-tag"><i class="bi bi-trophy-fill"></i> Award</span> }
+                                        @p.Title
+                                    </div>
+                                    <div class="small text-muted">
+                                        @if (p.IsTitleOnly)
+                                        {
+                                            <span class="chip">Title only</span>
+                                        }
+                                        else
+                                        {
+                                            @(p.Description.Length > 90 ? p.Description[..90] + "..." : p.Description)
+                                        }
+                                    </div>
+                                    <div class="d-md-none mt-2 small">
+                                        <span class="dept-badge">@p.Department</span>
+                                        <div class="text-muted mt-1">@p.University &bull; @(string.IsNullOrWhiteSpace(p.SupervisorName) ? "No supervisor listed" : p.SupervisorName) &bull; @p.Year</div>
+                                    </div>
                                 </td>
-                                <td><span class="dept-badge">@p.Department</span></td>
-                                <td>@p.SupervisorName</td>
-                                <td>@p.Year</td>
+                                <td class="d-none d-md-table-cell">@p.University</td>
+                                <td class="d-none d-md-table-cell"><span class="dept-badge">@p.Department</span></td>
+                                <td class="d-none d-md-table-cell">@(string.IsNullOrWhiteSpace(p.SupervisorName) ? "-" : p.SupervisorName)</td>
+                                <td class="d-none d-md-table-cell">@p.Year</td>
                                 <td class="text-end text-nowrap">
                                     <a asp-action="Edit" asp-route-id="@p.Id" class="btn-icon-lg" aria-label="Edit @p.Title" title="Edit">
                                         <i class="bi bi-pencil-square"></i>
@@ -158,13 +176,10 @@
     </div>
 </div>
 
-<footer class="text-center py-4 text-muted small">
-    &copy; 2026 NUML Islamabad &bull; Advance Programming Project
-</footer>
+
 
 @section Scripts {
     <script>
-        // Fill the confirmation box with the project that was clicked
         const deleteModal = document.getElementById('deleteModal');
         deleteModal.addEventListener('show.bs.modal', event => {
             const button = event.relatedTarget;

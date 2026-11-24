@@ -3,100 +3,233 @@
     ViewData["Title"] = "Welcome";
 }
 
+<partial name="_TopBar" />
+
+<!-- Hero -->
 <section class="hero">
-    <div class="hero-blob blob-1"></div>
-    <div class="hero-blob blob-2"></div>
-
-    <div class="container">
-        <header class="site-nav">
-            <a href="/" class="brand">
-                <img src="~/images/numl-logo.png" alt="NUML logo" />
-                <span class="brand-name">
-                    NUML Islamabad
-                    <small>FYP Match Tracker</small>
-                </span>
-            </a>
-            <nav class="d-flex align-items-center gap-4">
-                <partial name="_ThemeSwitcher" />
-                <a href="#how" class="nav-link-soft d-none d-sm-inline">How it works</a>
-                <a href="/Account/Choose" class="btn-gold btn-small">Get Started</a>
-            </nav>
-        </header>
-    </div>
-
     <div class="container hero-body">
         <div class="row align-items-center g-5">
-            <div class="col-lg-8">
+            <div class="col-lg-7">
                 <span class="brand-badge mb-4">
                     <i class="bi bi-mortarboard"></i>
-                    Department of Computer Science
+                    For students of every university
                 </span>
 
-                <h1 class="display-4 fw-bold">
+                <h1 class="fw-bold">
                     Is your FYP idea <span class="text-gold">already done?</span>
                 </h1>
-                <p class="lead mb-4" style="max-width: 520px; opacity: .9;">
-                    Upload your proposal. We compare it by meaning with the department's
-                    old FYPs, before you spend months building it.
+                <p class="hero-lead">
+                    Upload your proposal. We compare it by meaning with final year projects from many
+                    universities, before you spend months building it.
                 </p>
 
                 <div class="d-flex flex-wrap gap-3">
                     <a href="/Account/Choose" class="btn-gold">
                         Get Started <i class="bi bi-arrow-right"></i>
                     </a>
+                    <a href="/Browse" class="btn-ghost">Browse projects</a>
                     <a href="#how" class="btn-ghost">See how it works</a>
                 </div>
+            </div>
 
-                <div class="d-flex flex-wrap gap-4 mt-5">
-                    @if (Model.ProjectCount > 0)
-                    {
-                        <div class="stat"><strong>@Model.ProjectCount</strong><span>FYPs in the database</span></div>
-                    }
-                    <div class="stat"><strong>AI</strong><span>Meaning-based match</span></div>
-                    <div class="stat"><strong>3</strong><span>Clear verdicts</span></div>
+            <!-- Sample report (only a picture of what you will get) -->
+            <div class="col-lg-5 d-none d-lg-block" aria-hidden="true">
+                <div class="preview-card">
+                    <div class="preview-label mb-3"><i class="bi bi-clipboard-data"></i> Sample report</div>
+                    <div class="text-center mb-3">
+                        <div class="gauge" style="--pct: 72">
+                            <div class="gauge-inner">
+                                <strong>72%</strong>
+                                <span>similar</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between small mb-1"><span>Meaning match</span><strong>78%</strong></div>
+                    <div class="meter mb-3"><span style="width: 78%"></span></div>
+                    <div class="d-flex justify-content-between small mb-1"><span>Word match</span><strong>48%</strong></div>
+                    <div class="meter"><span style="width: 48%"></span></div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section id="how" class="container py-5">
-    <h2 class="text-center section-title mb-2">How it works</h2>
-    <p class="text-center text-muted mb-5">Three simple steps from proposal to report.</p>
+<!-- Top FYPs -->
+@if (Model.TopProjects.Count > 0)
+{
+    <section class="section" id="top">
+        <div class="container">
+            <div class="text-center mb-4">
+                <span class="section-kicker">@(Model.TopAreAwards ? "Award winners" : "Recently added")</span>
+                <h2 class="section-title">@(Model.TopAreAwards ? "Top FYPs from universities" : "Latest FYPs in our database")</h2>
+                <p class="section-sub">
+                    @(Model.TopAreAwards
+                        ? "Projects that won an award. Open any of them to see the original page."
+                        : "See what students have already built. Open any project to see the original page.")
+                </p>
+            </div>
 
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="bi bi-cloud-arrow-up"></i></div>
-                <h5 class="fw-bold">1. Upload your proposal</h5>
-                <p class="text-muted mb-0">Upload a PDF or Word file. We read the title and description for you.</p>
+            <div class="row g-3">
+                @foreach (var item in Model.TopProjects)
+                {
+                    <div class="col-lg-6">
+                        <partial name="_ProjectCard" model="item" />
+                    </div>
+                }
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="/Browse" class="btn-outline-brand auto-width">Browse all projects <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="bi bi-search"></i></div>
-                <h5 class="fw-bold">2. We compare it</h5>
-                <p class="text-muted mb-0">Your idea is compared with the department's old FYPs by meaning, not just words.</p>
+    </section>
+}
+
+<!-- Stats -->
+<section class="stats-strip">
+    <div class="container">
+        <div class="row g-3 justify-content-center">
+            @if (Model.ProjectCount > 0)
+            {
+                <div class="col-6 col-md-3">
+                    <div class="stat-tile"><strong>@Model.ProjectCount</strong><span>FYPs in the database</span></div>
+                </div>
+            }
+            <div class="col-6 col-md-3">
+                <div class="stat-tile"><strong>AI</strong><span>Meaning-based match</span></div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="bi bi-clipboard-data"></i></div>
-                <h5 class="fw-bold">3. Get your report</h5>
-                <p class="text-muted mb-0">See a similarity percentage and a clear verdict: Unique, Similar or Already Done.</p>
+            @if (Model.UniversityCount > 0)
+            {
+                <div class="col-6 col-md-3">
+                    <div class="stat-tile"><strong>@Model.UniversityCount</strong><span>@(Model.UniversityCount == 1 ? "University" : "Universities")</span></div>
+                </div>
+            }
+            <div class="col-6 col-md-3">
+                <div class="stat-tile"><strong>Free</strong><span>No paid tools used</span></div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="container pb-5">
+<!-- How it works -->
+<section id="how" class="section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-kicker">How it works</span>
+            <h2 class="section-title">Three simple steps from proposal to report</h2>
+            <p class="section-sub">It takes less than a minute and you do not need to read old reports yourself.</p>
+        </div>
+
+        <div class="row g-4 pt-3">
+            <div class="col-md-4">
+                <div class="how-card">
+                    <span class="how-no">1</span>
+                    <div class="feature-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                    <h3 class="h5 fw-bold">Upload your proposal</h3>
+                    <p class="text-muted mb-0">Upload a PDF or Word file. We read the title and description for you.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="how-card">
+                    <span class="how-no">2</span>
+                    <div class="feature-icon"><i class="bi bi-search"></i></div>
+                    <h3 class="h5 fw-bold">We compare it</h3>
+                    <p class="text-muted mb-0">Your idea is compared with old FYPs from many universities by meaning, not just words.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="how-card">
+                    <span class="how-no">3</span>
+                    <div class="feature-icon"><i class="bi bi-clipboard-data"></i></div>
+                    <h3 class="h5 fw-bold">Get your report</h3>
+                    <p class="text-muted mb-0">See a similarity percentage and a clear verdict. Download it as a PDF.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="section section-alt">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-kicker">Why use it</span>
+            <h2 class="section-title">Built for FYP students and supervisors</h2>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-lightbulb"></i></div>
+                    <h3 class="h6 fw-bold">Meaning match</h3>
+                    <p class="text-muted small mb-0">Finds the same idea even when the title and the words are different.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-fonts"></i></div>
+                    <h3 class="h6 fw-bold">Word match</h3>
+                    <p class="text-muted small mb-0">Also checks the exact words and shows the keywords you share with old FYPs.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-journal-text"></i></div>
+                    <h3 class="h6 fw-bold">Research papers</h3>
+                    <p class="text-muted small mb-0">Shows related research papers so you can read more about your topic.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-file-earmark-arrow-down"></i></div>
+                    <h3 class="h6 fw-bold">PDF report</h3>
+                    <p class="text-muted small mb-0">Download the full report and show it to your supervisor.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Verdicts -->
+<section class="section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-kicker">Your result</span>
+            <h2 class="section-title">Three clear verdicts</h2>
+            <p class="section-sub">The final score is @Math.Round(SimilarityRules.MeaningWeight * 100)% meaning plus @Math.Round(SimilarityRules.WordWeight * 100)% words.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="verdict-card">
+                    <span class="range">Below @SimilarityRules.SimilarFrom%</span>
+                    <h3 class="h5 fw-bold mt-3">Unique</h3>
+                    <p class="text-muted mb-0">Nothing like it was found in the projects we checked. Your idea looks new.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="verdict-card similar">
+                    <span class="range">@SimilarityRules.SimilarFrom% to @SimilarityRules.AlreadyDoneFrom%</span>
+                    <h3 class="h5 fw-bold mt-3">Similar</h3>
+                    <p class="text-muted mb-0">Some related work exists. Read it and make your idea clearly different.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="verdict-card done">
+                    <span class="range">@SimilarityRules.AlreadyDoneFrom% and above</span>
+                    <h3 class="h5 fw-bold mt-3">Already Done</h3>
+                    <p class="text-muted mb-0">Almost the same project exists. Please choose a new idea.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to action -->
+<section class="container pb-4">
     <div class="cta-band">
-        <h3 class="fw-bold mb-2">Ready to check your idea?</h3>
-        <p class="mb-4" style="opacity: .9;">It takes less than a minute.</p>
+        <h2 class="fw-bold mb-2">Ready to check your idea?</h2>
+        <p class="mb-4" style="opacity: .92;">Choose your role and start. It takes less than a minute.</p>
         <a href="/Account/Choose" class="btn-gold">Get Started <i class="bi bi-arrow-right"></i></a>
     </div>
 </section>
-
-<footer class="text-center py-4 text-muted small">
-    &copy; 2026 NUML Islamabad &bull; Advance Programming Project
-</footer>
