@@ -52,7 +52,25 @@
             <div id="proposalUpload" class="mb-3">
                 <div class="research-form-label">Upload proposal <span class="text-muted fw-normal">(optional)</span></div>
                 <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Choose a PDF, DOCX, or TXT proposal to upload">
-                    <i class="uil uil-file-upload-alt" aria-hidden="true"></i>
+                    <svg class="drop-zone-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+                        <defs>
+                            <linearGradient id="uploadIconGradient" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#4F46E5" />
+                                <stop offset=".55" stop-color="#7C3AED" />
+                                <stop offset="1" stop-color="#06B6D4" />
+                            </linearGradient>
+                            <linearGradient id="uploadIconHighlight" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#FFFFFF" />
+                                <stop offset="1" stop-color="#CFFAFE" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M13 5h14l9 9v22a4 4 0 0 1-4 4H13a4 4 0 0 1-4-4V9a4 4 0 0 1 4-4Z" fill="url(#uploadIconGradient)" fill-opacity=".14" stroke="url(#uploadIconGradient)" stroke-width="2.2" stroke-linejoin="round" />
+                        <path d="M27 5v9h9" fill="none" stroke="url(#uploadIconGradient)" stroke-width="2.2" stroke-linejoin="round" />
+                        <path d="M24 32V20m0 0-5 5m5-5 5 5" fill="none" stroke="url(#uploadIconGradient)" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M17 34h14" stroke="#06B6D4" stroke-width="2.4" stroke-linecap="round" />
+                        <circle cx="34" cy="31" r="7" fill="url(#uploadIconGradient)" />
+                        <path d="m31 31 2 2 4-4" fill="none" stroke="url(#uploadIconHighlight)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
                     <p class="mb-1 fw-semibold mt-2">Drop a proposal here or click to browse</p>
                     <p class="small text-muted mb-0">PDF, DOCX, or TXT · up to 5 MB</p>
                 </div>
@@ -64,6 +82,7 @@
                         <div id="fileName" class="fw-semibold"></div>
                         <div id="fileSize" class="small text-muted"></div>
                     </div>
+                    <span id="fileTypeBadge" class="file-type-badge">FILE</span>
                     <button type="button" id="removeFile" class="btn-icon" aria-label="Remove file">
                         <i class="uil uil-times-circle" aria-hidden="true"></i>
                     </button>
@@ -97,28 +116,84 @@
         </div>
 
         <div id="busyOverlay" class="research-scan-state d-none" role="status" aria-live="polite">
-            <i class="uil uil-search research-scan-icon" aria-hidden="true"></i>
+            <div class="research-scanner-visual" aria-hidden="true">
+                <lottie-player id="researchLottieScanner" class="research-lottie-scanner" background="transparent" speed="1" autoplay loop></lottie-player>
+                <svg class="research-scanner-fallback" viewBox="0 0 120 120" focusable="false">
+                    <defs>
+                        <linearGradient id="scannerFallbackGradient" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#4F46E5" />
+                            <stop offset=".55" stop-color="#7C3AED" />
+                            <stop offset="1" stop-color="#06B6D4" />
+                        </linearGradient>
+                        <radialGradient id="scannerFallbackGlow">
+                            <stop offset="0" stop-color="#06B6D4" stop-opacity=".2" />
+                            <stop offset="1" stop-color="#7C3AED" stop-opacity="0" />
+                        </radialGradient>
+                    </defs>
+                    <circle cx="60" cy="60" r="55" fill="url(#scannerFallbackGlow)" />
+                    <circle cx="60" cy="60" r="42" fill="none" stroke="#C7D2FE" stroke-width="1.5" stroke-dasharray="2 5" />
+                    <circle cx="60" cy="60" r="28" fill="none" stroke="url(#scannerFallbackGradient)" stroke-opacity=".48" stroke-width="1.5" />
+                    <path class="scanner-fallback-sweep" d="M60 60V18a42 42 0 0 1 36 20Z" fill="url(#scannerFallbackGradient)" fill-opacity=".35" />
+                    <circle cx="60" cy="60" r="4" fill="url(#scannerFallbackGradient)" />
+                    <path d="M60 60 88 34" stroke="url(#scannerFallbackGradient)" stroke-width="2" stroke-linecap="round" />
+                    <circle cx="89" cy="33" r="3" fill="#06B6D4" />
+                </svg>
+            </div>
             <strong id="researchScanTitle">Scanning project matches</strong>
             <p id="researchScanMessage">Comparing your idea with indexed FYPs and related research.</p>
-            <div class="research-scan-track" aria-hidden="true"><span></span></div>
+            <ol class="research-pipeline" aria-label="Analysis pipeline">
+                <li data-scan-step data-step-number="1">Extracting proposal text</li>
+                <li data-scan-step data-step-number="2">Generating semantic embeddings</li>
+                <li data-scan-step data-step-number="3">Comparing against FYP archive</li>
+            </ol>
+            <div class="research-scan-progress" role="progressbar" aria-label="Analysis pipeline progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8">
+                <span id="researchScanProgress"></span>
+            </div>
         </div>
 
         <div id="researchEmptyState" class="research-empty-state">
             <svg class="research-empty-illustration" viewBox="0 0 220 145" role="img" aria-labelledby="emptyIllustrationTitle">
                 <title id="emptyIllustrationTitle">Research cards waiting to be compared</title>
-                <circle cx="110" cy="72" r="63" fill="#EEF2FF" />
-                <rect x="48" y="34" width="74" height="91" rx="8" fill="#FFFFFF" stroke="#C7D2FE" stroke-width="2" transform="rotate(-8 48 34)" />
-                <path d="M66 58h34M63 70h40M61 82h27" stroke="#A5B4FC" stroke-width="4" stroke-linecap="round" />
-                <rect x="112" y="48" width="59" height="68" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" />
-                <path d="M124 66h34M124 78h28M124 90h19" stroke="#CBD5E1" stroke-width="4" stroke-linecap="round" />
-                <circle cx="150" cy="42" r="20" fill="#4F46E5" />
+                <defs>
+                    <linearGradient id="emptyCardGradient" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#4F46E5" />
+                        <stop offset=".52" stop-color="#7C3AED" />
+                        <stop offset="1" stop-color="#06B6D4" />
+                    </linearGradient>
+                    <linearGradient id="emptyLineGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#818CF8" />
+                        <stop offset="1" stop-color="#67E8F9" />
+                    </linearGradient>
+                    <radialGradient id="emptyRadarGlow">
+                        <stop offset="0" stop-color="#06B6D4" stop-opacity=".24" />
+                        <stop offset="1" stop-color="#7C3AED" stop-opacity="0" />
+                    </radialGradient>
+                </defs>
+                <circle cx="110" cy="72" r="68" fill="url(#emptyRadarGlow)" />
+                <circle cx="110" cy="72" r="64" fill="#EEF2FF" fill-opacity=".74" />
+                <circle cx="110" cy="72" r="48" fill="none" stroke="url(#emptyLineGradient)" stroke-opacity=".56" stroke-dasharray="2 5" />
+                <circle cx="110" cy="72" r="31" fill="none" stroke="url(#emptyLineGradient)" stroke-opacity=".68" />
+                <path d="M110 8v128M46 72h128" stroke="#C7D2FE" stroke-opacity=".7" />
+                <path class="radar-sweep" d="M110 72V8a64 64 0 0 1 54 30Z" fill="url(#emptyCardGradient)" fill-opacity=".32" />
+                <g class="float-card">
+                    <rect x="48" y="34" width="74" height="91" rx="8" fill="#FFFFFF" stroke="url(#emptyCardGradient)" stroke-opacity=".68" stroke-width="2" transform="rotate(-8 48 34)" />
+                    <path d="M66 58h34M63 70h40M61 82h27" stroke="url(#emptyLineGradient)" stroke-width="4" stroke-linecap="round" />
+                </g>
+                <rect x="112" y="48" width="59" height="68" rx="8" fill="#FFFFFF" stroke="url(#emptyLineGradient)" stroke-width="2" />
+                <path d="M124 66h34M124 78h28M124 90h19" stroke="url(#emptyLineGradient)" stroke-width="4" stroke-linecap="round" />
+                <circle cx="150" cy="42" r="20" fill="url(#emptyCardGradient)" />
                 <circle cx="148" cy="40" r="8" fill="none" stroke="#FFFFFF" stroke-width="3" />
-                <path d="m154 46 7 7" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
-                <circle cx="56" cy="108" r="5" fill="#10B981" />
-                <circle cx="176" cy="102" r="4" fill="#818CF8" />
+                <path d="m154 46 7 7" stroke="#CFFAFE" stroke-width="3" stroke-linecap="round" />
+                <circle cx="56" cy="108" r="5" fill="#06B6D4" />
+                <circle cx="176" cy="102" r="4" fill="#7C3AED" />
             </svg>
             <strong>No search results yet</strong>
             <p>Enter your idea and run a check to see project matches, similarity scores, and related papers.</p>
+            <div class="research-sample-prompts" aria-label="Sample project ideas">
+                <button type="button" class="research-sample-prompt" data-sample="attendance">AI Attendance System</button>
+                <button type="button" class="research-sample-prompt" data-sample="blockchain">Blockchain Supply Chain</button>
+                <button type="button" class="research-sample-prompt" data-sample="traffic">Smart Traffic IoT</button>
+            </div>
         </div>
 
         <div class="mt-3">
@@ -157,6 +232,13 @@
             const emptyState = document.getElementById('researchEmptyState');
             const scanTitle = document.getElementById('researchScanTitle');
             const scanMessage = document.getElementById('researchScanMessage');
+            const scanSteps = Array.from(document.querySelectorAll('[data-scan-step]'));
+            const scanProgress = document.getElementById('researchScanProgress');
+            const scanProgressTrack = scanProgress.parentElement;
+            const lottieScanner = document.getElementById('researchLottieScanner');
+            const scannerFallback = document.querySelector('.research-scanner-fallback');
+            const fileTypeBadge = document.getElementById('fileTypeBadge');
+            const samplePrompts = document.querySelectorAll('.research-sample-prompt');
             const extractUrl = '@Url.Action("ExtractText", "Check")';
             const historyKey = 'fyp-search-history';
 
@@ -167,16 +249,85 @@
             let lastAutoDescription = '';
             let requestNumber = 0;   // purane (der se aane wale) jawab ignore karne ke liye
             let isSubmitting = false;
+            let scanInterval = null;
 
-            function showScanner(titleText, messageText) {
+            const scannerAnimation = {
+                v: '5.7.4', fr: 30, ip: 0, op: 60, w: 120, h: 120, nm: 'Research radar scan', ddd: 0, assets: [],
+                layers: [{
+                    ddd: 0, ind: 1, ty: 4, nm: 'Rotating scan beam', sr: 1,
+                    ks: {
+                        o: { a: 0, k: 88 },
+                        r: { a: 1, k: [{ i: { x: [0.833], y: [0.833] }, o: { x: [0.167], y: [0.167] }, t: 0, s: [0], e: [360] }, { t: 60, s: [360] }] },
+                        p: { a: 0, k: [60, 60, 0] }, a: { a: 0, k: [0, 0, 0] }, s: { a: 0, k: [100, 100, 100] }
+                    },
+                    ao: 0,
+                    shapes: [{
+                        ty: 'gr',
+                        it: [
+                            { ty: 'sh', ks: { a: 0, k: { i: [[0, 0], [0, 0], [0, 0]], o: [[0, 0], [0, 0], [0, 0]], v: [[0, 0], [0, -42], [36, -21]], c: true } } },
+                            { ty: 'fl', c: { a: 0, k: [0.31, 0.27, 0.9, 0.48] }, o: { a: 0, k: 75 }, r: 1 },
+                            { ty: 'tr', p: { a: 0, k: [0, 0] }, a: { a: 0, k: [0, 0] }, s: { a: 0, k: [100, 100] }, r: { a: 0, k: 0 }, o: { a: 0, k: 100 }, sk: { a: 0, k: 0 }, sa: { a: 0, k: 0 } }
+                        ]
+                    }],
+                    ip: 0, op: 60, st: 0, bm: 0
+                }]
+            };
+
+            if (lottieScanner && window.customElements) {
+                lottieScanner.addEventListener('rendered', function () {
+                    lottieScanner.classList.add('is-ready');
+                    scannerFallback.classList.add('is-hidden');
+                }, { once: true });
+                lottieScanner.addEventListener('error', function () {
+                    lottieScanner.classList.remove('is-ready');
+                    scannerFallback.classList.remove('is-hidden');
+                }, { once: true });
+                window.customElements.whenDefined('lottie-player').then(function () {
+                    try {
+                        lottieScanner.setAttribute('src', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(scannerAnimation)));
+                    } catch (error) {
+                        scannerFallback.classList.remove('is-hidden');
+                        console.warn('Lottie scanner could not be initialized; using the animated SVG fallback.', error);
+                    }
+                });
+            }
+
+            function updatePipeline(stepIndex) {
+                scanSteps.forEach((step, index) => {
+                    step.classList.toggle('is-done', index < stepIndex);
+                    step.classList.toggle('is-active', index === stepIndex);
+                });
+                const progress = Math.min(95, Math.round(((stepIndex + 1) / scanSteps.length) * 100));
+                scanProgress.style.width = progress + '%';
+                scanProgressTrack.setAttribute('aria-valuenow', progress);
+            }
+
+            function showScanner(titleText, messageText, animatePipeline) {
                 scanTitle.textContent = titleText;
                 scanMessage.textContent = messageText;
                 emptyState.classList.add('d-none');
                 overlay.classList.remove('d-none');
+                if (scanInterval) { window.clearInterval(scanInterval); }
+                updatePipeline(0);
+                if (animatePipeline) {
+                    let activeStep = 0;
+                    scanInterval = window.setInterval(() => {
+                        activeStep = Math.min(activeStep + 1, scanSteps.length - 1);
+                        updatePipeline(activeStep);
+                        if (activeStep === scanSteps.length - 1) {
+                            window.clearInterval(scanInterval);
+                            scanInterval = null;
+                        }
+                    }, 1700);
+                }
             }
 
             function hideScanner() {
                 overlay.classList.add('d-none');
+                if (scanInterval) {
+                    window.clearInterval(scanInterval);
+                    scanInterval = null;
+                }
                 if (!isSubmitting) { emptyState.classList.remove('d-none'); }
             }
 
@@ -184,6 +335,32 @@
             if (!title.value.trim() && historyTitle) {
                 title.value = historyTitle;
             }
+
+            const sampleIdeas = {
+                attendance: {
+                    title: 'AI Attendance System',
+                    description: 'A classroom attendance tool that uses computer vision to identify enrolled students from an instructor-approved class photo, record attendance, and let staff review uncertain matches before saving.'
+                },
+                blockchain: {
+                    title: 'Blockchain Supply Chain',
+                    description: 'A supply-chain tracking application that records product handoffs between suppliers and retailers, gives authorized participants a shared audit trail, and helps customers verify product origin.'
+                },
+                traffic: {
+                    title: 'Smart Traffic IoT',
+                    description: 'An IoT traffic monitoring system that collects road sensor readings, estimates congestion at intersections, and presents traffic patterns to city operators for planning signal timing.'
+                }
+            };
+
+            samplePrompts.forEach(prompt => {
+                prompt.addEventListener('click', () => {
+                    const sample = sampleIdeas[prompt.dataset.sample];
+                    if (!sample) { return; }
+                    title.value = sample.title;
+                    description.value = sample.description;
+                    updateCount();
+                    title.focus();
+                });
+            });
 
             // Open the file picker by click or keyboard
             zone.addEventListener('click', () => input.click());
@@ -215,6 +392,7 @@
             const analyzeHtml = analyzeBtn.innerHTML;
             form.addEventListener('submit', () => {
                 isSubmitting = true;
+                scanSteps[0].textContent = input.files.length ? 'Extracting proposal text' : 'Preparing idea text';
                 if (title.value.trim()) {
                     try {
                         const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
@@ -226,7 +404,7 @@
                 }
                 analyzeBtn.disabled = true;
                 analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Analyzing...';
-                showScanner('Scanning project matches', 'Comparing your idea with indexed FYPs and related research.');
+                showScanner('Scanning project matches', 'Comparing your idea with indexed FYPs and related research.', true);
             });
 
             // If the user comes back with the Back button, do not leave the page stuck
@@ -236,6 +414,12 @@
                     analyzeBtn.disabled = false;
                     analyzeBtn.innerHTML = analyzeHtml;
                     hideScanner();
+                }
+            });
+            window.addEventListener('pagehide', () => {
+                if (scanInterval) {
+                    window.clearInterval(scanInterval);
+                    scanInterval = null;
                 }
             });
 
@@ -252,6 +436,7 @@
 
                 fileName.textContent = file.name;
                 fileSize.textContent = formatSize(file.size);
+                fileTypeBadge.textContent = ext.toUpperCase();
                 chip.classList.remove('d-none');
 
                 extractFromServer(file);
@@ -290,7 +475,7 @@
                 const myRequest = ++requestNumber;
                 extractNote.textContent = 'Reading your file...';
                 if (!isSubmitting) {
-                    showScanner('Reading proposal', 'Extracting the project title and description from your file.');
+                    showScanner('Reading proposal', 'Extracting the project title and description from your file.', false);
                 }
 
                 try {

@@ -1,15 +1,16 @@
 ﻿@model MatchItemViewModel
 @{
     var finalPercent = (int)Math.Round(Model.FinalScore);
+    var scoreTone = finalPercent > 75 ? "score-high" : finalPercent >= 45 ? "score-moderate" : "score-low";
 }
 
 @* data-university is used by the university filter on the result page *@
 <div class="match-card match-item" data-university="@Model.UniversityShort">
     <div class="d-flex align-items-start gap-3">
-        <div class="score-pill score-@Model.ScoreClass">@finalPercent%</div>
+        <div class="score-pill score-@Model.ScoreClass @scoreTone" aria-label="@finalPercent percent similarity">@finalPercent%</div>
 
         <div class="flex-grow-1">
-            <div class="mb-1">
+            <div class="match-metadata mb-1">
                 @if (!string.IsNullOrWhiteSpace(Model.UniversityShort))
                 {
                     <span class="uni-tag"><i class="uil uil-university" aria-hidden="true"></i> @Model.UniversityShort</span>
@@ -58,23 +59,30 @@
                 </div>
             </div>
 
-            @if (Model.CommonKeywords.Count > 0)
+            @if (Model.CommonKeywords.Count > 0 || !string.IsNullOrWhiteSpace(Model.BestPassage))
             {
-                <div class="mb-2">
-                    <span class="small text-muted me-1">Common keywords:</span>
-                    @foreach (var word in Model.CommonKeywords)
-                    {
-                        <span class="chip">@word</span>
-                    }
-                </div>
-            }
-
-            @if (!string.IsNullOrWhiteSpace(Model.BestPassage))
-            {
-                <div class="quote">
-                    <span class="small text-muted d-block mb-1">Why it matched (best passage)</span>
-                    @Model.BestPassage
-                </div>
+                <details class="match-overlap">
+                    <summary>View overlap highlights</summary>
+                    <div class="match-overlap-content">
+                        @if (Model.CommonKeywords.Count > 0)
+                        {
+                            <div class="mb-2">
+                                <span class="small text-muted me-1">Common keywords:</span>
+                                @foreach (var word in Model.CommonKeywords)
+                                {
+                                    <span class="chip">@word</span>
+                                }
+                            </div>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.BestPassage))
+                        {
+                            <div class="quote">
+                                <span class="small text-muted d-block mb-1">Why it matched (best passage)</span>
+                                @Model.BestPassage
+                            </div>
+                        }
+                    </div>
+                </details>
             }
 
             <div class="d-flex flex-wrap gap-2 align-items-center no-print mt-2">

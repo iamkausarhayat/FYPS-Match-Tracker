@@ -1,6 +1,10 @@
 ﻿@{
     var roleName = User.IsInRole("Admin") ? "Admin" : User.IsInRole("Student") ? "Student" : "Guest";
     var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var displayName = User.Identity?.Name;
+    var avatarInitial = !string.IsNullOrWhiteSpace(displayName) ? displayName.Trim()[0].ToString().ToUpperInvariant() : "G";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Workspace";
+    var workspaceBreadcrumb = currentController == "Check" ? "FYP Idea Intelligence" : currentController == "Browse" ? "FYP Repository" : currentController;
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -25,7 +29,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <script>
         tailwind = { config: { corePlugins: { preflight: false } } };
     </script>
@@ -33,6 +37,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
     <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet" />
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js" defer></script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <style>
         :root {
@@ -420,25 +425,53 @@
         }
     </style>
 </head>
-<body>
+<body class="workspace-app">
     <a href="#main" class="skip-link">Skip to content</a>
 
     <header class="workspace-topbar">
         <button id="workspaceMenuToggle" class="workspace-menu-toggle" type="button" aria-controls="workspaceSidebar" aria-expanded="false" aria-label="Open navigation">
             <i class="uil uil-bars" aria-hidden="true"></i>
         </button>
-        <a href="/Check/Upload" class="workspace-brand">
-            <span class="workspace-brand-icon"><i class="uil uil-search" aria-hidden="true"></i></span>
-            <span>
-                <span class="workspace-brand-title">FYP Search</span>
-                <span class="workspace-brand-subtitle">NUML Islamabad</span>
+        <a href="/Check/Upload" class="workspace-brand" aria-label="FYP Search home">
+            <span class="workspace-brand-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32" focusable="false">
+                    <defs>
+                        <linearGradient id="brandMarkGradient" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#4F46E5" />
+                            <stop offset=".55" stop-color="#7C3AED" />
+                            <stop offset="1" stop-color="#06B6D4" />
+                        </linearGradient>
+                        <linearGradient id="brandMarkLine" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#FFFFFF" />
+                            <stop offset="1" stop-color="#CFFAFE" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="1" y="1" width="30" height="30" rx="9" fill="url(#brandMarkGradient)" />
+                    <path d="M9 22V10h7.2a4 4 0 0 1 0 8H13" fill="none" stroke="url(#brandMarkLine)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="23" cy="10" r="2.1" fill="#A5F3FC" />
+                    <path d="m22.7 18 .8 1.8 1.8.8-1.8.8-.8 1.8-.8-1.8-1.8-.8 1.8-.8.8-1.8Z" fill="#FFFFFF" fill-opacity=".92" />
+                </svg>
             </span>
+            <span class="workspace-brand-title">FYP Search</span>
         </a>
+        <div class="workspace-header-context">
+            <a href="/Check/Upload" class="workspace-breadcrumb"><span>Workspace</span><i class="uil uil-angle-right" aria-hidden="true"></i><strong>@workspaceBreadcrumb</strong></a>
+            <span class="workspace-engine-status"><span class="workspace-status-dot"></span> AI Semantic Engine Online</span>
+        </div>
+        <button id="workspaceQuickJump" class="workspace-quick-jump" type="button" aria-label="Quick search or open repository">
+            <i class="uil uil-search" aria-hidden="true"></i>
+            <span>Search indexed FYPs or press Ctrl+K...</span>
+            <kbd>Ctrl K</kbd>
+        </button>
         <div class="workspace-topbar-right">
-            <span class="workspace-role"><i class="uil uil-user" aria-hidden="true"></i> @roleName</span>
+            <div class="workspace-user-pill">
+                <span class="workspace-avatar" aria-hidden="true">@avatarInitial</span>
+                <span class="workspace-user-name">@(isAuthenticated ? displayName : "Guest")</span>
+                <span class="workspace-role">@roleName</span>
+            </div>
             @if (isAuthenticated)
             {
-                <a class="workspace-account" href="/Check/Upload"><i class="uil uil-user-circle" aria-hidden="true"></i> Profile</a>
+                <a class="workspace-account" href="/Check/Upload"><i class="uil uil-user-circle" aria-hidden="true"></i> Account</a>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="workspace-logout">
                     <button type="submit" class="workspace-account" aria-label="Log out"><i class="uil uil-sign-out-alt" aria-hidden="true"></i></button>
                 </form>
@@ -475,6 +508,17 @@
             @RenderBody()
         </main>
     </div>
+    <footer class="workspace-status-footer" aria-label="Workspace status">
+        <div class="workspace-footer-telemetry">
+            <span><i class="uil uil-database" aria-hidden="true"></i> Repository: <strong>NUML FYP Archive</strong></span>
+            <span class="workspace-footer-separator">·</span>
+            <span><i class="uil uil-brain" aria-hidden="true"></i> Engine: <strong>Semantic + Lexical Hybrid</strong></span>
+        </div>
+        <div class="workspace-footer-meta">
+            <span><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to Analyze</span>
+            <span class="workspace-version">v2.4 Production</span>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -485,6 +529,7 @@
             const sidebar = document.getElementById('workspaceSidebar');
             const toggle = document.getElementById('workspaceMenuToggle');
             const scrim = document.getElementById('workspaceScrim');
+            const quickJump = document.getElementById('workspaceQuickJump');
 
             function readHistory() {
                 try {
@@ -535,7 +580,31 @@
             });
             document.addEventListener('keydown', function (event) {
                 if (event.key === 'Escape') { closeSidebar(); }
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+                    event.preventDefault();
+                    openQuickJump();
+                }
+                if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                    const form = document.getElementById('checkForm');
+                    const submit = document.getElementById('analyzeBtn');
+                    if (form && submit && !submit.disabled) {
+                        event.preventDefault();
+                        form.requestSubmit(submit);
+                    }
+                }
             });
+
+            function openQuickJump() {
+                const titleInput = document.getElementById('Title');
+                if (titleInput) {
+                    titleInput.focus();
+                    titleInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+                window.location.href = '/Browse';
+            }
+
+            quickJump.addEventListener('click', openQuickJump);
         })();
     </script>
 
