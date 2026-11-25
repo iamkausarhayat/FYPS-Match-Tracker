@@ -1,42 +1,12 @@
 using System.Diagnostics;
 using FypTracker.Models;
-using FypTracker.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FypTracker.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IProjectService _projects;
-        private readonly BrowseService _browse;
-
-        public HomeController(IProjectService projects, BrowseService browse)
-        {
-            _projects = projects;
-            _browse = browse;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            var model = new HomeIndexViewModel();
-            try
-            {
-                // Real number from the database. If the database is down, the landing page still opens.
-                model.ProjectCount = await _projects.CountAsync();
-                model.UniversityCount = await _browse.CountUniversitiesAsync();
-
-                var top = await _browse.GetTopAsync(6);
-                model.TopProjects = top.Items;
-                model.TopAreAwards = top.AreAwards;
-            }
-            catch
-            {
-                model.ProjectCount = 0;
-                model.UniversityCount = 0;
-                model.TopProjects = new List<BrowseItem>();
-            }
-            return View(model);
-        }
+        public IActionResult Index() => RedirectToAction("Upload", "Check");
 
         // Shown for HTTP errors such as 404 and 403 (wired up in Program.cs)
         public IActionResult Status(int code)

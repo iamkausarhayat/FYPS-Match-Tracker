@@ -41,9 +41,21 @@
                 <div class="text-muted small mb-2">Authors (as listed): @Model.Authors</div>
             }
 
-            <div class="small mb-2">
-                <span class="me-3"><i class="bi bi-lightbulb"></i> Meaning <strong>@Math.Round(Model.MeaningScore)%</strong></span>
-                <span><i class="bi bi-fonts"></i> Words <strong>@Math.Round(Model.WordScore)%</strong></span>
+            <div class="research-match-breakdown" aria-label="Similarity breakdown">
+                <div class="research-match-breakdown-row">
+                    <span>Semantic</span>
+                    <strong>@Math.Round(Model.MeaningScore)%</strong>
+                </div>
+                <div class="research-match-meter" role="progressbar" aria-label="Semantic similarity" aria-valuenow="@Math.Round(Model.MeaningScore)" aria-valuemin="0" aria-valuemax="100">
+                    <span style="width:@Math.Round(Model.MeaningScore)%"></span>
+                </div>
+                <div class="research-match-breakdown-row">
+                    <span>Lexical</span>
+                    <strong>@Math.Round(Model.WordScore)%</strong>
+                </div>
+                <div class="research-match-meter lexical" role="progressbar" aria-label="Lexical similarity" aria-valuenow="@Math.Round(Model.WordScore)" aria-valuemin="0" aria-valuemax="100">
+                    <span style="width:@Math.Round(Model.WordScore)%"></span>
+                </div>
             </div>
 
             @if (Model.CommonKeywords.Count > 0)

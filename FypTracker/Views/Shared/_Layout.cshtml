@@ -1,43 +1,537 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var roleName = User.IsInRole("Admin") ? "Admin" : User.IsInRole("Student") ? "Student" : "Guest";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - FYP Match Tracker</title>
+    <title>@ViewData["Title"] - FYP Search</title>
     <link rel="icon" href="~/favicon.ico" />
 
-    @* Set the theme first (before the page paints) so there is no flash of the wrong colour. Key 'theme' is also used in site.js *@
+    @* Set the theme first (before the page paints) so there is no flash of the wrong colour. *@
     <script>
-            (function () {
-                try {
-                    var pref = localStorage.getItem('theme') || 'system';
-                    var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                    var theme = dark ? 'dark' : 'light';
-                    document.documentElement.setAttribute('data-theme', theme);
-                    document.documentElement.setAttribute('data-bs-theme', theme);
-                } catch (e) { }
-            })();
+        (function () {
+            try {
+                var pref = localStorage.getItem('theme') || 'system';
+                var dark = pref === 'dark' || (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                var theme = dark ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            } catch (e) { }
+        })();
     </script>
 
-    @* Fonts, Bootstrap and Icons come from a CDN (internet needed) *@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script>
+        tailwind = { config: { corePlugins: { preflight: false } } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        :root {
+            --workspace-bg: #F8FAFC;
+            --workspace-surface: #FFFFFF;
+            --workspace-border: #E2E8F0;
+            --workspace-indigo: #4F46E5;
+            --workspace-ink: #0F172A;
+            --workspace-muted: #64748B;
+            --workspace-green: #10B981;
+            --workspace-rose: #EF4444;
+        }
+
+        [data-theme="dark"] {
+            --workspace-bg: #0B1220;
+            --workspace-surface: #121C2F;
+            --workspace-border: #26344D;
+            --workspace-ink: #E6EDF7;
+            --workspace-muted: #9DB0CF;
+        }
+
+        body {
+            display: block;
+            min-width: 320px;
+            color: var(--workspace-ink);
+            background: var(--workspace-bg);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .workspace-topbar {
+            position: sticky;
+            z-index: 1040;
+            top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+            padding: 0 24px;
+            background: var(--workspace-surface);
+            border-bottom: 1px solid var(--workspace-border);
+        }
+
+        .workspace-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--workspace-ink);
+            text-decoration: none;
+        }
+
+        .workspace-brand:hover { color: var(--workspace-ink); }
+
+        .workspace-brand-icon {
+            display: grid;
+            width: 32px;
+            height: 32px;
+            color: white;
+            background: var(--workspace-indigo);
+            border-radius: 9px;
+            place-items: center;
+        }
+
+        .workspace-brand-title { font-size: 14px; font-weight: 800; line-height: 1.15; }
+        .workspace-brand-subtitle { display: block; margin-top: 2px; color: var(--workspace-muted); font-size: 10px; font-weight: 600; }
+
+        .workspace-topbar-right { display: flex; align-items: center; gap: 12px; }
+
+        .workspace-role {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 9px;
+            color: #4338CA;
+            background: #EEF2FF;
+            border: 1px solid #E0E7FF;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .workspace-account {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 11px;
+            color: var(--workspace-ink);
+            background: white;
+            border: 1px solid var(--workspace-border);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .workspace-account:hover { color: var(--workspace-indigo); border-color: #C7D2FE; }
+        .workspace-logout { padding: 0; background: transparent; border: 0; }
+
+        .workspace-menu-toggle {
+            display: none;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            color: var(--workspace-ink);
+            background: white;
+            border: 1px solid var(--workspace-border);
+            border-radius: 8px;
+        }
+
+        .workspace-shell {
+            display: grid;
+            min-height: calc(100vh - 56px);
+            grid-template-columns: minmax(215px, 20vw) minmax(0, 1fr);
+        }
+
+        .workspace-sidebar {
+            position: sticky;
+            top: 56px;
+            height: calc(100vh - 56px);
+            padding: 20px 14px;
+            overflow-y: auto;
+            background: var(--workspace-surface);
+            border-right: 1px solid var(--workspace-border);
+        }
+
+        .workspace-sidebar-label {
+            margin: 20px 9px 9px;
+            color: #94A3B8;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .workspace-new-check {
+            display: flex;
+            min-height: 42px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: white;
+            background: var(--workspace-indigo);
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 800;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, .18);
+        }
+
+        .workspace-new-check:hover { color: white; background: #4338CA; }
+
+        .workspace-nav-link,
+        .workspace-history-link {
+            display: flex;
+            min-height: 38px;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            color: #475569;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .workspace-nav-link:hover,
+        .workspace-history-link:hover { color: var(--workspace-indigo); background: #F1F5F9; }
+
+        .workspace-history-link {
+            display: block;
+            overflow: hidden;
+            min-height: 0;
+            padding: 7px 10px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .workspace-history-empty { padding: 4px 10px; color: #94A3B8; font-size: 11px; }
+
+        .workspace-main { min-width: 0; padding: 24px; }
+        .workspace-main > .topbar { display: none !important; }
+        .workspace-scrim { display: none; }
+
+        .research-page-grid {
+            display: grid;
+            max-width: 1600px;
+            margin: 0 auto;
+            align-items: start;
+            gap: 20px;
+            grid-template-columns: minmax(0, 60fr) minmax(290px, 40fr);
+        }
+
+        .research-main-column, .research-side-panel { min-width: 0; }
+
+        .workspace-page-heading { margin-bottom: 18px; }
+        .workspace-page-heading h1 { margin: 0 0 5px; color: var(--workspace-ink); font-size: clamp(20px, 2vw, 26px); font-weight: 800; letter-spacing: -.04em; }
+        .workspace-page-heading p { margin: 0; color: var(--workspace-muted); font-size: 13px; }
+
+        .research-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 14px;
+            padding: 4px;
+            overflow-x: auto;
+            background: #F1F5F9;
+            border: 1px solid var(--workspace-border);
+            border-radius: 10px;
+        }
+
+        .research-tab {
+            display: inline-flex;
+            min-height: 34px;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            padding: 7px 10px;
+            color: #64748B;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .research-tab.active { color: var(--workspace-indigo); background: white; box-shadow: 0 1px 3px rgba(15, 23, 42, .1); }
+        .research-tab:hover { color: var(--workspace-indigo); }
+
+        .research-card,
+        .research-side-panel {
+            padding: 20px;
+            background: var(--workspace-surface);
+            border: 1px solid var(--workspace-border);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, .035);
+        }
+
+        .research-side-panel { position: sticky; top: 76px; }
+        .research-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+        .research-panel-heading h2 { margin: 0; color: var(--workspace-ink); font-size: 14px; font-weight: 800; }
+        .research-panel-eyebrow { color: var(--workspace-muted); font-size: 11px; }
+        .research-empty-state { padding: 28px 14px; color: var(--workspace-muted); text-align: center; background: #F8FAFC; border: 1px dashed var(--workspace-border); border-radius: 10px; }
+        .research-empty-state strong { display: block; margin: 10px 0 4px; color: var(--workspace-ink); font-size: 12px; }
+        .research-empty-state p { margin: 0; font-size: 11px; }
+        .research-empty-illustration { display: block; width: min(100%, 210px); height: auto; margin: 0 auto; }
+        .research-scan-state { padding: 18px 14px; color: var(--workspace-muted); text-align: center; background: #F8FAFC; border: 1px solid var(--workspace-border); border-radius: 10px; }
+        .research-scan-state strong { display: block; margin: 9px 0 3px; color: var(--workspace-ink); font-size: 12px; }
+        .research-scan-state p { margin: 0; font-size: 11px; }
+        .research-scan-icon { color: var(--workspace-indigo); font-size: 22px; }
+        .research-scan-track { position: relative; height: 5px; margin: 14px 0 0; overflow: hidden; background: #E0E7FF; border-radius: 999px; }
+        .research-scan-track span { position: absolute; inset: 0 auto 0 -35%; width: 35%; background: var(--workspace-indigo); border-radius: inherit; animation: research-scan 1.3s ease-in-out infinite; }
+        @@keyframes research-scan {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(385%); }
+        }
+
+        .research-metric {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        .research-metric:last-child { border-bottom: 0; }
+        .research-metric-icon { display: grid; width: 32px; height: 32px; color: var(--workspace-indigo); background: #EEF2FF; border-radius: 8px; place-items: center; }
+        .research-metric strong { display: block; color: var(--workspace-ink); font-size: 11px; }
+        .research-metric span { display: block; color: var(--workspace-muted); font-size: 10px; }
+
+        .research-form-label { display: block; margin-bottom: 6px; color: #334155; font-size: 12px; font-weight: 700; }
+        .research-input { min-height: 42px; border-color: var(--workspace-border); border-radius: 8px; font-size: 13px; }
+        .research-textarea { border-color: var(--workspace-border); border-radius: 8px; font-size: 13px; }
+        .research-input:focus, .research-textarea:focus { border-color: var(--workspace-indigo); box-shadow: 0 0 0 3px rgba(79, 70, 229, .12); }
+        .research-scope-note { margin: 14px 0 0; padding: 10px 12px; color: #475569; background: #F8FAFC; border: 1px solid var(--workspace-border); border-radius: 8px; font-size: 11px; }
+        .research-scope-note strong { color: var(--workspace-ink); }
+        .research-submit { min-height: 42px; padding: 9px 16px; color: white; background: var(--workspace-indigo); border: 0; border-radius: 8px; font-size: 12px; font-weight: 800; }
+        .research-submit:hover { color: white; background: #4338CA; }
+        .research-submit:disabled { opacity: .7; }
+
+        .research-columns { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(280px, .7fr); }
+        .research-column-section { margin-bottom: 18px; }
+        .research-column-section > .section-title { color: var(--workspace-ink); font-size: 14px; }
+        .research-side-panel .match-card { padding: 14px; border-radius: 10px; box-shadow: none; }
+        .research-side-panel .score-pill { min-width: 52px; height: 52px; font-size: 12px; border-radius: 10px; }
+        .research-side-panel .match-card h5 { font-size: 13px; overflow-wrap: anywhere; }
+        .research-side-panel .quote { overflow-wrap: anywhere; }
+        .research-side-panel .research-match-breakdown { margin: 10px 0 12px; }
+        .research-match-breakdown-row { display: flex; justify-content: space-between; gap: 8px; color: #64748B; font-size: 10px; }
+        .research-match-breakdown-row strong { color: #334155; }
+        .research-match-meter { height: 5px; margin: 4px 0 8px; overflow: hidden; background: #E2E8F0; border-radius: 999px; }
+        .research-match-meter span { display: block; height: 100%; background: #6366F1; border-radius: inherit; }
+        .research-match-meter.lexical span { background: #10B981; }
+        .research-gauge { flex-shrink: 0; width: 68px; height: 68px; margin: 0; }
+        .research-gauge .gauge-inner { width: 54px; height: 54px; }
+        .research-gauge .gauge-inner strong { font-size: 12px; }
+        .research-verdict-badge { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; }
+        .research-verdict-badge.verdict-unique { color: #047857; background: #ECFDF5; }
+        .research-verdict-badge.verdict-similar { color: #B45309; background: #FFFBEB; }
+        .research-verdict-badge.verdict-done { color: #B91C1C; background: #FEF2F2; }
+        .research-verdict-dot { width: 7px; height: 7px; background: currentColor; border-radius: 50%; }
+        .research-future-scope { padding: 16px; background: #F8FAFC; border: 1px solid var(--workspace-border); border-left: 4px solid var(--workspace-indigo); border-radius: 10px; }
+        .research-side-panel .research-future-scope { margin-top: 16px; }
+        .research-side-panel .filter-bar { flex-wrap: wrap; }
+        .research-side-panel .filter-bar select { width: 100%; }
+        .research-report-actions { display: grid; gap: 8px; }
+        .research-report-actions > * { width: 100%; justify-content: center; }
+        .workspace-preferences { margin-top: 24px; padding: 12px 9px 0; border-top: 1px solid var(--workspace-border); }
+
+        .skip-link {
+            position: absolute;
+            left: -999px;
+            top: 0;
+            z-index: 3000;
+            padding: .6rem 1rem;
+            color: white;
+            background: var(--workspace-indigo);
+            border-radius: 0 0 .5rem 0;
+            font-weight: 700;
+        }
+        .skip-link:focus { left: 0; }
+
+        [data-theme="dark"] .workspace-role { color: #C7D2FE; background: #1E1B4B; border-color: #3730A3; }
+        [data-theme="dark"] .workspace-nav-link,
+        [data-theme="dark"] .workspace-history-link { color: #CBD5E1; }
+        [data-theme="dark"] .workspace-nav-link:hover,
+        [data-theme="dark"] .workspace-history-link:hover,
+        [data-theme="dark"] .research-tabs { background: #1E293B; }
+        [data-theme="dark"] .research-tab.active { background: #0F172A; }
+        [data-theme="dark"] .research-empty-state,
+        [data-theme="dark"] .research-scope-note,
+        [data-theme="dark"] .research-future-scope { color: #CBD5E1; background: #0F172A; }
+        [data-theme="dark"] .research-scan-state { background: #0F172A; }
+        [data-theme="dark"] .research-scan-track { background: #312E81; }
+        [data-theme="dark"] .research-side-panel .research-metric { border-color: #26344D; }
+        [data-theme="dark"] .research-side-panel .research-metric strong { color: var(--workspace-ink); }
+        [data-theme="dark"] .workspace-account { color: var(--workspace-ink); background: var(--workspace-surface); }
+        [data-theme="dark"] .workspace-account:hover { color: #A5B4FC; }
+        [data-theme="dark"] .result-summary.verdict-unique { --verdict-color: #10B981; --verdict-bg: #064E3B; }
+        [data-theme="dark"] .result-summary.verdict-similar { --verdict-color: #F59E0B; --verdict-bg: #78350F; }
+        [data-theme="dark"] .result-summary.verdict-done { --verdict-color: #EF4444; --verdict-bg: #7F1D1D; }
+        [data-theme="light"] .result-summary.verdict-unique { --verdict-color: #10B981; --verdict-bg: #ECFDF5; }
+        [data-theme="light"] .result-summary.verdict-done { --verdict-color: #EF4444; --verdict-bg: #FEF2F2; }
+
+        @@media (max-width: 900px) {
+            .workspace-shell { grid-template-columns: 200px minmax(0, 1fr); }
+            .workspace-main { padding: 18px; }
+            .research-page-grid { grid-template-columns: minmax(0, 1fr); }
+            .research-side-panel { position: static; }
+        }
+
+        @@media (max-width: 640px) {
+            .workspace-topbar { padding: 0 12px; }
+            .workspace-menu-toggle { display: inline-grid; place-items: center; }
+            .workspace-brand { margin-right: auto; margin-left: 9px; }
+            .workspace-brand-subtitle { font-size: 9px; }
+            .workspace-topbar-right { gap: 7px; }
+            .workspace-role { padding: 5px 7px; font-size: 10px; }
+            .workspace-account { padding: 7px 8px; font-size: 11px; }
+            .workspace-shell { display: block; }
+            .workspace-sidebar {
+                position: fixed;
+                z-index: 1050;
+                top: 56px;
+                bottom: 0;
+                left: 0;
+                width: min(84vw, 290px);
+                height: auto;
+                transform: translateX(-102%);
+                transition: transform .18s ease;
+                box-shadow: 12px 0 32px rgba(15, 23, 42, .12);
+            }
+            .workspace-sidebar.is-open { transform: translateX(0); }
+            .workspace-scrim.is-visible { position: fixed; z-index: 1045; inset: 56px 0 0; display: block; background: rgba(15, 23, 42, .28); }
+            .workspace-main { padding: 14px; }
+            .research-page-grid { gap: 14px; }
+            .research-card, .research-side-panel { padding: 15px; }
+            .research-columns { grid-template-columns: minmax(0, 1fr); }
+            .research-tabs { gap: 2px; }
+            .research-tab { padding: 7px 8px; font-size: 10px; }
+        }
+    </style>
 </head>
 <body>
     <a href="#main" class="skip-link">Skip to content</a>
 
-    <main id="main">
-        @RenderBody()
-    </main>
+    <header class="workspace-topbar">
+        <button id="workspaceMenuToggle" class="workspace-menu-toggle" type="button" aria-controls="workspaceSidebar" aria-expanded="false" aria-label="Open navigation">
+            <i class="uil uil-bars" aria-hidden="true"></i>
+        </button>
+        <a href="/Check/Upload" class="workspace-brand">
+            <span class="workspace-brand-icon"><i class="uil uil-search" aria-hidden="true"></i></span>
+            <span>
+                <span class="workspace-brand-title">FYP Search</span>
+                <span class="workspace-brand-subtitle">NUML Islamabad</span>
+            </span>
+        </a>
+        <div class="workspace-topbar-right">
+            <span class="workspace-role"><i class="uil uil-user" aria-hidden="true"></i> @roleName</span>
+            @if (isAuthenticated)
+            {
+                <a class="workspace-account" href="/Check/Upload"><i class="uil uil-user-circle" aria-hidden="true"></i> Profile</a>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="workspace-logout">
+                    <button type="submit" class="workspace-account" aria-label="Log out"><i class="uil uil-sign-out-alt" aria-hidden="true"></i></button>
+                </form>
+            }
+            else
+            {
+                <a class="workspace-account" href="/Account/Choose"><i class="uil uil-sign-in-alt" aria-hidden="true"></i> Login</a>
+            }
+        </div>
+    </header>
 
-    <partial name="_Footer" />
+    <div id="workspaceScrim" class="workspace-scrim"></div>
+    <div class="workspace-shell">
+        <aside id="workspaceSidebar" class="workspace-sidebar" aria-label="Workspace navigation">
+            <a href="/Check/Upload" class="workspace-new-check"><i class="uil uil-plus" aria-hidden="true"></i> New FYP Check</a>
+
+            <div class="workspace-sidebar-label"><i class="uil uil-history" aria-hidden="true"></i> Recent searches</div>
+            <nav id="recentSearches" aria-label="Recent searches">
+                <div class="workspace-history-empty">Your recent checks will appear here.</div>
+            </nav>
+
+            <div class="workspace-sidebar-label">Workspace</div>
+            <nav aria-label="Quick navigation">
+                <a href="/Browse" class="workspace-nav-link"><i class="uil uil-book-open" aria-hidden="true"></i> FYP Repository</a>
+                <a href="/Browse" class="workspace-nav-link"><i class="uil uil-graduation-cap" aria-hidden="true"></i> Top FYPs</a>
+                <a href="/Admin/Projects" class="workspace-nav-link"><i class="uil uil-shield-check" aria-hidden="true"></i> Admin Panel</a>
+            </nav>
+            <div class="workspace-preferences">
+                <partial name="_ThemeSwitcher" />
+            </div>
+        </aside>
+
+        <main id="main" class="workspace-main">
+            @RenderBody()
+        </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            const historyKey = 'fyp-search-history';
+            const list = document.getElementById('recentSearches');
+            const sidebar = document.getElementById('workspaceSidebar');
+            const toggle = document.getElementById('workspaceMenuToggle');
+            const scrim = document.getElementById('workspaceScrim');
+
+            function readHistory() {
+                try {
+                    const value = JSON.parse(localStorage.getItem(historyKey) || '[]');
+                    return Array.isArray(value) ? value.filter(item => typeof item === 'string').slice(0, 5) : [];
+                } catch (error) {
+                    list.textContent = 'Recent search history is unavailable.';
+                    console.warn('Recent search history could not be read.', error);
+                    return [];
+                }
+            }
+
+            function renderHistory() {
+                const history = readHistory();
+                if (!history.length) { return; }
+                list.replaceChildren();
+                history.forEach(title => {
+                    const link = document.createElement('a');
+                    link.className = 'workspace-history-link';
+                    link.href = '/Check/Upload?title=' + encodeURIComponent(title);
+                    link.textContent = title;
+                    link.title = title;
+                    list.appendChild(link);
+                });
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('is-open');
+                scrim.classList.remove('is-visible');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Open navigation');
+            }
+
+            renderHistory();
+
+            if (toggle) {
+                toggle.addEventListener('click', function () {
+                    const open = sidebar.classList.toggle('is-open');
+                    scrim.classList.toggle('is-visible', open);
+                    toggle.setAttribute('aria-expanded', String(open));
+                    toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+                });
+            }
+
+            scrim.addEventListener('click', closeSidebar);
+            sidebar.addEventListener('click', function (event) {
+                if (event.target.closest('a')) { closeSidebar(); }
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') { closeSidebar(); }
+            });
+        })();
+    </script>
 
     @* Each page can add its own scripts here: @section Scripts { ... } *@
     @await RenderSectionAsync("Scripts", required: false)

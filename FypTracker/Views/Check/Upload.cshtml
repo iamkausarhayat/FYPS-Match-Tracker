@@ -3,109 +3,135 @@
     ViewData["Title"] = "Check your idea";
 }
 
-<partial name="_TopBar" />
+<div class="research-page-grid">
+    <section class="research-main-column">
+        <div class="workspace-page-heading">
+            <h1>Research workspace</h1>
+            <p>Compare your idea with previously collected final year projects.</p>
+        </div>
 
-<section class="page-hero compact">
-    <div class="container">
-        <h1 class="fw-bold mb-2">Check your FYP idea</h1>
-        <p class="lead mb-0" style="opacity: .9;">Upload your proposal (optional) or just type your idea, then press Analyze. We compare it with projects from many universities.</p>
-    </div>
-</section>
+        <nav class="research-tabs" aria-label="Research tools">
+            <a class="research-tab active" href="/Check/Upload" aria-current="page"><i class="uil uil-search" aria-hidden="true"></i> Compare Idea</a>
+            <a class="research-tab" href="/Browse"><i class="uil uil-graduation-cap" aria-hidden="true"></i> Top FYPs</a>
+            <a class="research-tab" href="#proposalUpload"><i class="uil uil-file-upload-alt" aria-hidden="true"></i> Upload Proposal (PDF/DOCX)</a>
+        </nav>
 
-<section class="container page-body">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-
-            <form asp-action="Upload" method="post" enctype="multipart/form-data" novalidate id="checkForm">
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-
-                <!-- Step 1: upload -->
-                <div class="step-card">
-                    <div class="step-title">
-                        <span class="step-no">1</span> Upload your proposal
-                        <span class="badge text-bg-secondary ms-2">Optional</span>
-                    </div>
-                    <p class="small text-muted">No file? You can skip this step and type your title and description in step 2.</p>
-
-                    <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Choose a file to upload">
-                        <i class="bi bi-cloud-arrow-up"></i>
-                        <p class="mb-1 fw-semibold mt-2">Drag and drop your file here, or click to browse</p>
-                        <p class="small text-muted mb-0">PDF, Word (.docx) or text (.txt) &bull; up to 5 MB</p>
-                    </div>
-                    <input asp-for="Document" type="file" class="d-none" accept=".pdf,.docx,.txt" />
-
-                    <div id="fileChip" class="file-chip d-none">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <div class="flex-grow-1">
-                            <div id="fileName" class="fw-semibold"></div>
-                            <div id="fileSize" class="small text-muted"></div>
-                        </div>
-                        <button type="button" id="removeFile" class="btn-icon" aria-label="Remove file">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
-                    </div>
-
-                    <div id="extractNote" class="small mt-2 text-muted" role="status"></div>
-                    <div id="fileError" class="text-danger small mt-2" role="alert"></div>
-                    <span asp-validation-for="Document" class="text-danger small"></span>
+        <form asp-action="Upload" method="post" enctype="multipart/form-data" novalidate id="checkForm" class="research-card">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="research-panel-heading">
+                <div>
+                    <h2>Check an FYP idea</h2>
+                    <span class="research-panel-eyebrow">Add your project details to search the repository.</span>
                 </div>
+                <span class="workspace-role"><i class="uil uil-search" aria-hidden="true"></i> Idea analysis</span>
+            </div>
 
-                <!-- Step 2: details -->
-                <div class="step-card">
-                    <div class="step-title">
-                        <span class="step-no">2</span> Enter the details
-                        <span id="autoBadge" class="badge text-bg-success d-none ms-auto">Filled from your file</span>
-                    </div>
+            <div class="mb-3">
+                <label asp-for="Title" class="research-form-label">Project title</label>
+                <input asp-for="Title" class="form-control research-input" placeholder="e.g. Smart attendance using face recognition" />
+                <span asp-validation-for="Title" class="text-danger small"></span>
+            </div>
 
-                    <div class="mb-3">
-                        <label asp-for="Title" class="form-label fw-semibold">Project title</label>
-                        <input asp-for="Title" class="form-control form-control-lg" placeholder="e.g. Smart attendance using face recognition" />
-                        <span asp-validation-for="Title" class="text-danger small"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Description" class="form-label fw-semibold">Description</label>
-                        <textarea asp-for="Description" rows="6" class="form-control" placeholder="Explain your idea: the problem, the users, the main features and the technology."></textarea>
-                        <div class="d-flex justify-content-between">
-                            <span asp-validation-for="Description" class="text-danger small"></span>
-                            <span class="form-text ms-auto"><span id="descCount">0</span> / 3000 (minimum 50)</span>
-                        </div>
-                        <div class="form-text">Tip: 80 words or more gives a better match. Please write in English.</div>
-                    </div>
-
-                    <div class="mb-1">
-                        <label asp-for="SupervisorName" class="form-label fw-semibold"></label>
-                        <span class="badge text-bg-secondary ms-1">Optional</span>
-                        <input asp-for="SupervisorName" class="form-control form-control-lg" placeholder="e.g. Dr. Ahmed Raza (you can leave this empty)" />
-                        <span asp-validation-for="SupervisorName" class="text-danger small"></span>
-                    </div>
+            <div class="mb-3">
+                <label asp-for="Description" class="research-form-label">Idea description</label>
+                <textarea asp-for="Description" rows="6" class="form-control research-textarea" placeholder="Explain the problem, intended users, main features, and technology."></textarea>
+                <div class="d-flex justify-content-between">
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                    <span class="form-text ms-auto"><span id="descCount">0</span> / 3000 (minimum 50)</span>
                 </div>
+                <div class="form-text">A detailed description gives a more useful comparison. Please write in English.</div>
+            </div>
 
-                <!-- Step 3: analyze -->
-                <div class="step-card">
-                    <div class="step-title"><span class="step-no">3</span> Analyze</div>
-                    <p class="text-muted">Your idea is compared with previous FYPs from different universities. This may take a few seconds.</p>
-                    <button type="submit" id="analyzeBtn" class="btn-brand">
-                        <i class="bi bi-cpu"></i> Analyze my idea
+            <div class="mb-3">
+                <label asp-for="SupervisorName" class="research-form-label"></label>
+                <span class="badge text-bg-secondary ms-1">Optional</span>
+                <input asp-for="SupervisorName" class="form-control research-input" placeholder="Supervisor name (optional)" />
+                <span asp-validation-for="SupervisorName" class="text-danger small"></span>
+            </div>
+
+            <div id="proposalUpload" class="mb-3">
+                <div class="research-form-label">Upload proposal <span class="text-muted fw-normal">(optional)</span></div>
+                <div id="dropZone" class="drop-zone" tabindex="0" role="button" aria-label="Choose a PDF, DOCX, or TXT proposal to upload">
+                    <i class="uil uil-file-upload-alt" aria-hidden="true"></i>
+                    <p class="mb-1 fw-semibold mt-2">Drop a proposal here or click to browse</p>
+                    <p class="small text-muted mb-0">PDF, DOCX, or TXT · up to 5 MB</p>
+                </div>
+                <input asp-for="Document" type="file" class="d-none" accept=".pdf,.docx,.txt" />
+
+                <div id="fileChip" class="file-chip d-none">
+                    <i class="uil uil-file-alt" aria-hidden="true"></i>
+                    <div class="flex-grow-1">
+                        <div id="fileName" class="fw-semibold"></div>
+                        <div id="fileSize" class="small text-muted"></div>
+                    </div>
+                    <button type="button" id="removeFile" class="btn-icon" aria-label="Remove file">
+                        <i class="uil uil-times-circle" aria-hidden="true"></i>
                     </button>
                 </div>
-            </form>
 
+                <div id="extractNote" class="small mt-2 text-muted" role="status"></div>
+                <div id="fileError" class="text-danger small mt-2" role="alert"></div>
+                <span asp-validation-for="Document" class="text-danger small"></span>
+                <span id="autoBadge" class="badge text-bg-success d-none mt-2">Details filled from your file</span>
+            </div>
+
+            <div class="research-scope-note">
+                <strong>Search coverage:</strong> all currently indexed projects across universities. Department, semester, and category exclusions are not applied by the current search.
+            </div>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4">
+                <span class="small text-muted"><i class="uil uil-check-circle" aria-hidden="true"></i> Your idea is compared with saved project data.</span>
+                <button type="submit" id="analyzeBtn" class="research-submit">
+                    <i class="uil uil-search" aria-hidden="true"></i> Analyze &amp; Search
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <aside class="research-side-panel" aria-labelledby="matchesPanelTitle">
+        <div class="research-panel-heading">
+            <div>
+                <h2 id="matchesPanelTitle">Matches &amp; Analysis</h2>
+                <span class="research-panel-eyebrow">Live results appear after a check.</span>
+            </div>
+            <span class="workspace-role"><i class="uil uil-check-circle" aria-hidden="true"></i> Ready</span>
         </div>
-    </div>
-</section>
 
-<!-- Shown while the server is analyzing -->
-<div id="busyOverlay" class="busy-overlay d-none" role="status" aria-live="polite">
-    <div class="busy-card">
-        <div class="spinner-border text-primary" aria-hidden="true"></div>
-        <h2 class="h5 fw-bold mt-3 mb-2">Analyzing your idea...</h2>
-        <p class="text-muted small mb-0">
-            We are comparing it with FYPs from different universities by meaning.
-            The first check can take a little longer while the AI model loads.
-            Please do not close this page.
-        </p>
-    </div>
+        <div id="busyOverlay" class="research-scan-state d-none" role="status" aria-live="polite">
+            <i class="uil uil-search research-scan-icon" aria-hidden="true"></i>
+            <strong>Scanning project matches</strong>
+            <p>Comparing your idea with indexed FYPs and related research.</p>
+            <div class="research-scan-track" aria-hidden="true"><span></span></div>
+        </div>
+
+        <div id="researchEmptyState" class="research-empty-state">
+            <svg class="research-empty-illustration" viewBox="0 0 220 145" role="img" aria-labelledby="emptyIllustrationTitle">
+                <title id="emptyIllustrationTitle">Research cards waiting to be compared</title>
+                <circle cx="110" cy="72" r="63" fill="#EEF2FF" />
+                <rect x="48" y="34" width="74" height="91" rx="8" fill="#FFFFFF" stroke="#C7D2FE" stroke-width="2" transform="rotate(-8 48 34)" />
+                <path d="M66 58h34M63 70h40M61 82h27" stroke="#A5B4FC" stroke-width="4" stroke-linecap="round" />
+                <rect x="112" y="48" width="59" height="68" rx="8" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2" />
+                <path d="M124 66h34M124 78h28M124 90h19" stroke="#CBD5E1" stroke-width="4" stroke-linecap="round" />
+                <circle cx="150" cy="42" r="20" fill="#4F46E5" />
+                <circle cx="148" cy="40" r="8" fill="none" stroke="#FFFFFF" stroke-width="3" />
+                <path d="m154 46 7 7" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+                <circle cx="56" cy="108" r="5" fill="#10B981" />
+                <circle cx="176" cy="102" r="4" fill="#818CF8" />
+            </svg>
+            <strong>No search results yet</strong>
+            <p>Enter your idea and run a check to see project matches, similarity scores, and related papers.</p>
+        </div>
+
+        <div class="mt-3">
+            <div class="research-metric">
+                <span class="research-metric-icon"><i class="uil uil-database" aria-hidden="true"></i></span>
+                <div><strong>FYP repository</strong><span>Saved project records are compared.</span></div>
+            </div>
+            <div class="research-metric">
+                <span class="research-metric-icon"><i class="uil uil-book-open" aria-hidden="true"></i></span>
+                <div><strong>Related research</strong><span>Paper links may appear with your report.</span></div>
+            </div>
+        </div>
+    </aside>
 </div>
 
 
@@ -128,7 +154,9 @@
             const form = document.getElementById('checkForm');
             const analyzeBtn = document.getElementById('analyzeBtn');
             const overlay = document.getElementById('busyOverlay');
+            const emptyState = document.getElementById('researchEmptyState');
             const extractUrl = '@Url.Action("ExtractText", "Check")';
+            const historyKey = 'fyp-search-history';
 
             const allowed = ['pdf', 'docx', 'txt'];
             const maxBytes = 5 * 1024 * 1024;
@@ -136,6 +164,11 @@
             let lastAutoTitle = '';
             let lastAutoDescription = '';
             let requestNumber = 0;   // purane (der se aane wale) jawab ignore karne ke liye
+
+            const historyTitle = new URLSearchParams(window.location.search).get('title');
+            if (!title.value.trim() && historyTitle) {
+                title.value = historyTitle;
+            }
 
             // Open the file picker by click or keyboard
             zone.addEventListener('click', () => input.click());
@@ -166,9 +199,19 @@
             // While analyzing: stop double clicks and show the waiting card
             const analyzeHtml = analyzeBtn.innerHTML;
             form.addEventListener('submit', () => {
+                if (title.value.trim()) {
+                    try {
+                        const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+                        const updated = [title.value.trim(), ...(Array.isArray(history) ? history.filter(item => item !== title.value.trim()) : [])].slice(0, 5);
+                        localStorage.setItem(historyKey, JSON.stringify(updated));
+                    } catch (error) {
+                        console.warn('Recent search history could not be saved.', error);
+                    }
+                }
                 analyzeBtn.disabled = true;
                 analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Analyzing...';
                 overlay.classList.remove('d-none');
+                emptyState.classList.add('d-none');
             });
 
             // If the user comes back with the Back button, do not leave the page stuck
@@ -177,6 +220,7 @@
                     analyzeBtn.disabled = false;
                     analyzeBtn.innerHTML = analyzeHtml;
                     overlay.classList.add('d-none');
+                    emptyState.classList.remove('d-none');
                 }
             });
 

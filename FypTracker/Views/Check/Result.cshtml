@@ -7,6 +7,7 @@
     var filterNames = Model.UniversityFilterNames;
     var papersNote = TempData["PapersNote"] as string;
     var liveNote = TempData["LiveNote"] as string;
+    var verdictIcon = Model.VerdictClass == "done" ? "uil-times-circle" : "uil-check-circle";
 
     // Yeh data "Download PDF" button ke liye page mein rakha jata hai (browser PDF khud banata hai)
     var reportJson = JsonSerializer.Serialize(new
@@ -48,23 +49,29 @@
     });
 }
 
-<partial name="_TopBar" />
+<div class="workspace-page-heading">
+    <h1>Similarity analysis</h1>
+    <p>How your idea compares with collected final year projects and related research.</p>
+</div>
 
-<section class="page-hero compact">
-    <div class="container">
-        <h1 class="fw-bold mb-2">Your similarity report</h1>
-        <p class="lead mb-0" style="opacity: .9;">
-            Here is how your idea compares with final year projects from different universities.
-        </p>
-    </div>
-</section>
+<nav class="research-tabs" aria-label="Research tools">
+    <a class="research-tab active" href="/Check/Upload"><i class="uil uil-search" aria-hidden="true"></i> Compare Idea</a>
+    <a class="research-tab" href="/Browse"><i class="uil uil-graduation-cap" aria-hidden="true"></i> Top FYPs</a>
+    <a class="research-tab" href="/Check/Upload#proposalUpload"><i class="uil uil-file-upload-alt" aria-hidden="true"></i> Upload Proposal (PDF/DOCX)</a>
+</nav>
 
-<section class="container page-body">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
+<div class="research-page-grid">
+    <section class="research-main-column">
+        <div class="research-panel-heading">
+            <div>
+                <h2>Checked idea</h2>
+                <span class="research-panel-eyebrow">Your submitted project details and closest match.</span>
+            </div>
+            <a asp-action="Upload" class="workspace-account"><i class="uil uil-search" aria-hidden="true"></i> New check</a>
+        </div>
 
             <!-- 1. Verdict and score -->
-            <div class="step-card result-summary verdict-@Model.VerdictClass">
+            <div class="research-card result-summary verdict-@Model.VerdictClass mb-3">
                 <div class="row align-items-center g-4">
                     <div class="col-md-4 text-center">
                         <div class="gauge" style="--pct:@Model.OverallPercent" role="img" aria-label="Overall similarity @Model.OverallPercent percent">
@@ -76,7 +83,7 @@
                     </div>
 
                     <div class="col-md-8">
-                        <span class="verdict-pill">@Model.Verdict</span>
+                        <span class="verdict-pill"><i class="uil @verdictIcon" aria-hidden="true"></i> @Model.Verdict</span>
                         <h3 class="fw-bold mt-2 mb-1">@Model.Title</h3>
 
                         @if (!string.IsNullOrWhiteSpace(Model.SupervisorName) || !string.IsNullOrWhiteSpace(Model.FileName))
@@ -247,8 +254,33 @@
                 <p class="text-muted">No projects were available to compare with.</p>
             }
 
+    </section>
+
+    <aside class="research-side-panel" aria-labelledby="matchesPanelTitle">
+        <div class="research-panel-heading">
+            <div>
+                <h2 id="matchesPanelTitle">Matches &amp; Analysis</h2>
+                <span class="research-panel-eyebrow">Closest saved FYPs and related research.</span>
+            </div>
+            <div class="gauge research-gauge" style="--pct:@Model.OverallPercent" role="img" aria-label="Overall similarity @Model.OverallPercent percent">
+                <div class="gauge-inner"><strong>@Model.OverallPercent%</strong></div>
+            </div>
+        </div>
+
+        <div class="research-verdict-badge verdict-@Model.VerdictClass">
+            <i class="uil @verdictIcon" aria-hidden="true"></i>
+            @if (Model.Verdict == "Unique")
+            {
+                <span>Not Done · Unique</span>
+            }
+            else
+            {
+                <span>@Model.Verdict</span>
+            }
+        </div>
+
             <!-- 3. Other matching projects, with a university filter -->
-            <h4 class="section-title mt-4 mb-2"><i class="bi bi-collection"></i> Other matching projects</h4>
+            <h4 class="section-title mt-4 mb-2"><i class="bi bi-collection"></i> Database search matches</h4>
             @if (others.Any())
             {
                 @if (Model.Verdict == "Unique")
@@ -261,7 +293,7 @@
                 @if (filterNames.Count > 1)
                 {
                     <div class="filter-bar no-print">
-                        <label for="uniFilter" class="fw-semibold small mb-0"><i class="bi bi-funnel"></i> University</label>
+                        <label for="uniFilter" class="fw-semibold small mb-0"><i class="uil uil-filter" aria-hidden="true"></i> University</label>
                         <select id="uniFilter" class="form-select form-select-sm">
                             <option value="">All universities</option>
                             @foreach (var name in filterNames)
@@ -289,8 +321,8 @@
             <!-- 4. Suggestion -->
             @if (Model.Suggestion != null)
             {
-                <div class="suggestion-box verdict-@Model.VerdictClass">
-                    <div class="suggestion-title mb-1"><i class="bi bi-lightbulb"></i> Our suggestion</div>
+                <div class="suggestion-box research-future-scope verdict-@Model.VerdictClass">
+                    <div class="suggestion-title mb-1"><i class="uil uil-lightbulb" aria-hidden="true"></i> Future scope &amp; recommendations</div>
                     <p class="fw-bold mb-1">@Model.Suggestion.Headline</p>
                     <p class="mb-2">@Model.Suggestion.Message</p>
 
@@ -348,7 +380,7 @@
 
                         @if (!string.IsNullOrEmpty(paper.Url))
                         {
-                            <a href="@paper.Url" target="_blank" rel="noopener" class="small fw-semibold text-decoration-none">
+                            <a href="@paper.Url" target="_blank" rel="noopener noreferrer" class="small fw-semibold text-decoration-none">
                                 Open paper <i class="bi bi-box-arrow-up-right"></i>
                             </a>
                         }
@@ -364,17 +396,15 @@
 
             <!-- What to do next -->
             <div class="next-steps no-print mt-4 mb-5">
-                <div class="fw-semibold mb-2">What next?</div>
-                <div class="d-flex flex-wrap gap-3">
-                    <a asp-action="Upload" class="btn-brand auto-width"><i class="bi bi-arrow-repeat"></i> Check another idea</a>
-                    <button type="button" id="downloadPdfBtn" class="btn-outline-brand auto-width"><i class="bi bi-file-earmark-arrow-down"></i> Download PDF</button>
-                    <a href="/" class="btn-outline-brand auto-width"><i class="bi bi-house"></i> Back to home</a>
+                <div class="fw-semibold mb-2">Report actions</div>
+                <div class="research-report-actions">
+                    <button type="button" id="downloadPdfBtn" class="btn-brand auto-width"><i class="uil uil-file-download-alt" aria-hidden="true"></i> Download PDF report</button>
+                    <a asp-action="Upload" class="btn-outline-brand auto-width"><i class="uil uil-refresh" aria-hidden="true"></i> Reset search</a>
                 </div>
             </div>
 
-        </div>
-    </div>
-</section>
+    </aside>
+</div>
 
 <script id="reportData" type="application/json">@Html.Raw(reportJson)</script>
 
