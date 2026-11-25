@@ -107,14 +107,14 @@
                         </p>
 
                         <div class="coverage-note">
-                            <i class="bi bi-diagram-3"></i> @Model.CoverageText
+                            <i class="uil uil-sitemap" aria-hidden="true"></i> @Model.CoverageText
                             This is not a guarantee: projects from universities that do not publish their list are not included.
                         </div>
 
                         @if (!string.IsNullOrWhiteSpace(liveNote))
                         {
                             <div class="coverage-note mt-2">
-                                <i class="bi bi-broadcast"></i> @liveNote
+                                <i class="uil uil-wifi" aria-hidden="true"></i> @liveNote
                             </div>
                         }
                     </div>
@@ -126,7 +126,7 @@
             {
                 <div class="featured-card verdict-@Model.VerdictClass">
                     <span class="featured-label">
-                        <i class="bi bi-bullseye"></i>
+                        <i class="uil uil-bullseye" aria-hidden="true"></i>
                         @(Model.Verdict == "Unique" ? "Closest project we found" : "The project behind this score")
                     </span>
 
@@ -137,7 +137,7 @@
                             <div class="mb-1">
                                 @if (!string.IsNullOrWhiteSpace(top.UniversityShort))
                                 {
-                                    <span class="uni-tag"><i class="bi bi-building"></i> @top.UniversityShort</span>
+                                    <span class="uni-tag"><i class="uil uil-university" aria-hidden="true"></i> @top.UniversityShort</span>
                                 }
                                 @if (top.Year > 0)
                                 {
@@ -149,7 +149,7 @@
                                 }
                                 @if (top.IsLowConfidence)
                                 {
-                                    <span class="low-conf-tag"><i class="bi bi-exclamation-triangle"></i> Low confidence</span>
+                                    <span class="low-conf-tag"><i class="uil uil-exclamation-triangle" aria-hidden="true"></i> Low confidence</span>
                                 }
                             </div>
 
@@ -208,7 +208,7 @@
                             @if (top.IsLowConfidence)
                             {
                                 <p class="small mb-2" style="color: var(--warn);">
-                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <i class="uil uil-exclamation-triangle" aria-hidden="true"></i>
                                     Low confidence: only the title of this project was available, so please open it and read it yourself.
                                 </p>
                             }
@@ -217,18 +217,18 @@
                                 @if (top.HasSourceUrl)
                                 {
                                     <a href="@top.SourceUrl" target="_blank" rel="noopener noreferrer" class="btn-brand auto-width open-original">
-                                        <i class="bi bi-box-arrow-up-right"></i> Open original project
+                                        <i class="uil uil-external-link-alt" aria-hidden="true"></i> Open original project
                                     </a>
                                 }
                                 else
                                 {
-                                    <span class="link-missing"><i class="bi bi-link-45deg"></i> Link not available for this project</span>
+                                    <span class="link-missing"><i class="uil uil-link-broken" aria-hidden="true"></i> Link not available for this project</span>
                                 }
 
                                 @if (top.ProjectId.HasValue)
                                 {
                                     <button type="button" class="btn-outline-brand auto-width view-fyp" data-project-id="@top.ProjectId">
-                                        <i class="bi bi-eye"></i> Details
+                                        <i class="uil uil-eye" aria-hidden="true"></i> Details
                                     </button>
                                 }
                             </div>
@@ -238,7 +238,7 @@
 
                 <!-- How the score is calculated -->
                 <div class="formula mb-4">
-                    <div class="fw-semibold mb-1"><i class="bi bi-calculator"></i> How this score is calculated</div>
+                    <div class="fw-semibold mb-1"><i class="uil uil-calculator-alt" aria-hidden="true"></i> How this score is calculated</div>
                     <div class="small">
                         Final score = @Math.Round(SimilarityRules.MeaningWeight * 100)% &times; Meaning + @Math.Round(SimilarityRules.WordWeight * 100)% &times; Words<br />
                         = @SimilarityRules.MeaningWeight &times; @Math.Round(top.MeaningScore) + @SimilarityRules.WordWeight &times; @Math.Round(top.WordScore)
@@ -280,7 +280,7 @@
         </div>
 
             <!-- 3. Other matching projects, with a university filter -->
-            <h4 class="section-title mt-4 mb-2"><i class="bi bi-collection"></i> Database search matches</h4>
+            <h4 class="section-title mt-4 mb-2"><i class="uil uil-folder-open" aria-hidden="true"></i> Database search matches</h4>
             @if (others.Any())
             {
                 @if (Model.Verdict == "Unique")
@@ -339,18 +339,18 @@
                     <p class="small text-muted mb-0">
                         @if (Model.Suggestion.IsAi)
                         {
-                            <span><i class="bi bi-stars"></i> Written by an AI helper, using your idea and the closest projects. Please check it with your supervisor.</span>
+                            <span><i class="uil uil-robot" aria-hidden="true"></i> Written by an AI helper, using your idea and the closest projects. Please check it with your supervisor.</span>
                         }
                         else
                         {
-                            <span><i class="bi bi-info-circle"></i> Based on your idea and the closest projects. Please check it with your supervisor.</span>
+                            <span><i class="uil uil-info-circle" aria-hidden="true"></i> Based on your idea and the closest projects. Please check it with your supervisor.</span>
                         }
                     </p>
                 </div>
             }
 
             <!-- Research papers (Crossref): sirf padhne ke liye, in ka percentage nahi nikalta -->
-            <h4 class="section-title mt-4 mb-3"><i class="bi bi-journal-text"></i> Related research papers</h4>
+            <h4 class="section-title mt-4 mb-3"><i class="uil uil-file-alt" aria-hidden="true"></i> Related research papers</h4>
             @if (Model.Papers.Count > 0)
             {
                 <p class="small text-muted">
@@ -363,7 +363,7 @@
                     var paper = Model.Papers[i];
 
                     <div class="match-card">
-                        <span class="source-tag source-paper"><i class="bi bi-journal-text"></i> Research paper</span>
+                        <span class="source-tag source-paper"><i class="uil uil-file-alt" aria-hidden="true"></i> Research paper</span>
                         <h5 class="fw-bold mb-1 mt-1">@paper.Title</h5>
                         <div class="text-muted small mb-2">
                             @paper.Authors
@@ -381,7 +381,7 @@
                         @if (!string.IsNullOrEmpty(paper.Url))
                         {
                             <a href="@paper.Url" target="_blank" rel="noopener noreferrer" class="small fw-semibold text-decoration-none">
-                                Open paper <i class="bi bi-box-arrow-up-right"></i>
+                                Open paper <i class="uil uil-external-link-alt" aria-hidden="true"></i>
                             </a>
                         }
                     </div>
@@ -413,7 +413,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="fypModalTitle"><i class="bi bi-building"></i> Project details</h5>
+                <h5 class="modal-title" id="fypModalTitle"><i class="uil uil-university" aria-hidden="true"></i> Project details</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

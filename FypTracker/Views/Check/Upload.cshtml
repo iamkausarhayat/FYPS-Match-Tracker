@@ -98,8 +98,8 @@
 
         <div id="busyOverlay" class="research-scan-state d-none" role="status" aria-live="polite">
             <i class="uil uil-search research-scan-icon" aria-hidden="true"></i>
-            <strong>Scanning project matches</strong>
-            <p>Comparing your idea with indexed FYPs and related research.</p>
+            <strong id="researchScanTitle">Scanning project matches</strong>
+            <p id="researchScanMessage">Comparing your idea with indexed FYPs and related research.</p>
             <div class="research-scan-track" aria-hidden="true"><span></span></div>
         </div>
 
@@ -155,6 +155,8 @@
             const analyzeBtn = document.getElementById('analyzeBtn');
             const overlay = document.getElementById('busyOverlay');
             const emptyState = document.getElementById('researchEmptyState');
+            const scanTitle = document.getElementById('researchScanTitle');
+            const scanMessage = document.getElementById('researchScanMessage');
             const extractUrl = '@Url.Action("ExtractText", "Check")';
             const historyKey = 'fyp-search-history';
 
@@ -164,6 +166,19 @@
             let lastAutoTitle = '';
             let lastAutoDescription = '';
             let requestNumber = 0;   // purane (der se aane wale) jawab ignore karne ke liye
+            let isSubmitting = false;
+
+            function showScanner(titleText, messageText) {
+                scanTitle.textContent = titleText;
+                scanMessage.textContent = messageText;
+                emptyState.classList.add('d-none');
+                overlay.classList.remove('d-none');
+            }
+
+            function hideScanner() {
+                overlay.classList.add('d-none');
+                if (!isSubmitting) { emptyState.classList.remove('d-none'); }
+            }
 
             const historyTitle = new URLSearchParams(window.location.search).get('title');
             if (!title.value.trim() && historyTitle) {
@@ -199,6 +214,7 @@
             // While analyzing: stop double clicks and show the waiting card
             const analyzeHtml = analyzeBtn.innerHTML;
             form.addEventListener('submit', () => {
+                isSubmitting = true;
                 if (title.value.trim()) {
                     try {
                         const history = JSON.parse(localStorage.getItem(historyKey) || '[]');
@@ -210,17 +226,16 @@
                 }
                 analyzeBtn.disabled = true;
                 analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Analyzing...';
-                overlay.classList.remove('d-none');
-                emptyState.classList.add('d-none');
+                showScanner('Scanning project matches', 'Comparing your idea with indexed FYPs and related research.');
             });
 
             // If the user comes back with the Back button, do not leave the page stuck
             window.addEventListener('pageshow', e => {
                 if (e.persisted) {
+                    isSubmitting = false;
                     analyzeBtn.disabled = false;
                     analyzeBtn.innerHTML = analyzeHtml;
-                    overlay.classList.add('d-none');
-                    emptyState.classList.remove('d-none');
+                    hideScanner();
                 }
             });
 
@@ -244,6 +259,7 @@
 
             function rejectFile(message) {
                 requestNumber++;
+                if (!isSubmitting) { hideScanner(); }
                 input.value = '';
                 chip.classList.add('d-none');
                 fileError.textContent = message;
@@ -251,6 +267,7 @@
 
             function clearFile() {
                 requestNumber++;
+                if (!isSubmitting) { hideScanner(); }
                 input.value = '';
                 chip.classList.add('d-none');
                 fileError.textContent = '';
@@ -272,6 +289,9 @@
             async function extractFromServer(file) {
                 const myRequest = ++requestNumber;
                 extractNote.textContent = 'Reading your file...';
+                if (!isSubmitting) {
+                    showScanner('Reading proposal', 'Extracting the project title and description from your file.');
+                }
 
                 try {
                     const data = new FormData();
@@ -307,6 +327,8 @@
                     if (myRequest !== requestNumber) { return; }
                     extractNote.textContent = '';
                     fileError.textContent = 'Could not read the file. Please type the title and description yourself.';
+                } finally {
+                    if (myRequest === requestNumber && !isSubmitting) { hideScanner(); }
                 }
             }
 

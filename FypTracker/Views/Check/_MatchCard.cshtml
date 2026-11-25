@@ -12,7 +12,7 @@
             <div class="mb-1">
                 @if (!string.IsNullOrWhiteSpace(Model.UniversityShort))
                 {
-                    <span class="uni-tag"><i class="bi bi-building"></i> @Model.UniversityShort</span>
+                    <span class="uni-tag"><i class="uil uil-university" aria-hidden="true"></i> @Model.UniversityShort</span>
                 }
                 @if (Model.Year > 0)
                 {
@@ -25,7 +25,7 @@
                 @if (Model.IsLowConfidence)
                 {
                     <span class="low-conf-tag" title="This project only had a title, so the match is less reliable.">
-                        <i class="bi bi-exclamation-triangle"></i> Low confidence
+                        <i class="uil uil-exclamation-triangle" aria-hidden="true"></i> Low confidence
                     </span>
                 }
             </div>
@@ -82,12 +82,12 @@
                 {
                     <a href="@Model.SourceUrl" target="_blank" rel="noopener noreferrer"
                        class="btn-brand auto-width open-original" style="padding: .4rem 1.1rem; font-size: .88rem;">
-                        <i class="bi bi-box-arrow-up-right"></i> Open original project
+                        <i class="uil uil-external-link-alt" aria-hidden="true"></i> Open original project
                     </a>
                 }
                 else
                 {
-                    <span class="link-missing"><i class="bi bi-link-45deg"></i> Link not available</span>
+                    <span class="link-missing"><i class="uil uil-link-broken" aria-hidden="true"></i> Link not available</span>
                 }
 
                 @if (Model.ProjectId.HasValue)
@@ -95,7 +95,7 @@
                     <button type="button" class="btn-outline-brand auto-width view-fyp"
                             style="padding: .4rem 1.1rem; font-size: .88rem;"
                             data-project-id="@Model.ProjectId">
-                        <i class="bi bi-eye"></i> Details
+                        <i class="uil uil-eye" aria-hidden="true"></i> Details
                     </button>
                 }
             </div>
