@@ -40,7 +40,11 @@ namespace FypTracker.Services
                         .ToList();
         }
 
-      
+        // Text -> set of unique keywords
+        public static HashSet<string> ToWordSet(string? text)
+        {
+            return new HashSet<string>(Tokenize(text));
+        }
 
         // Text -> how many times each keyword appears
         public static Dictionary<string, int> CountWords(string? text)

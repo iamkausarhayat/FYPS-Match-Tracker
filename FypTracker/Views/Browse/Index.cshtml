@@ -1,8 +1,7 @@
-﻿@model BrowseViewModel
+@model BrowseViewModel
 @{
     ViewData["Title"] = "Browse projects";
 
-    // Filter bachaye hue page badalne ke links
     string PageUrl(int page) => Url.Action("Index", "Browse", new
     {
         q = Model.Query,
@@ -16,33 +15,30 @@
 
 <partial name="_TopBar" />
 
-<section class="page-hero compact">
-    <div class="container">
-        <h1 class="fw-bold mb-2">Browse FYP projects</h1>
-        <p class="lead mb-0" style="opacity: .9;">
-            Search the final year projects we have collected from universities. Open any project to see the original page.
-        </p>
+<section class="browse-hero">
+    <div class="container browse-hero-inner">
+        <div class="browse-hero-copy">
+            <span class="brand-badge"><i class="bi bi-mortarboard"></i> Open to every university</span>
+            <h1>Find the work that came before yours.</h1>
+            <p>Explore real FYP records collected through idea checks. Search by topic, then narrow your view by university, year, or area.</p>
+        </div>
+        <div class="browse-hero-art" aria-hidden="true"><span class="art-orbit orbit-one"></span><span class="art-orbit orbit-two"></span><span class="art-icon"><i class="bi bi-journal-richtext"></i></span><span class="art-caption">Student ideas<br />research starts here</span></div>
     </div>
 </section>
 
-<section class="container page-body">
-
+<section class="container browse-workspace" aria-label="Browse projects">
     @if (Model.Error != null)
     {
         <div class="alert alert-danger" role="alert"><i class="bi bi-exclamation-circle"></i> @Model.Error</div>
     }
 
-    <!-- Search and filters -->
-    <div class="step-card">
-        <form method="get" asp-controller="Browse" asp-action="Index" class="row g-2 align-items-end">
-            <div class="col-lg-12">
-                <label for="q" class="form-label fw-semibold">Search</label>
-                <input id="q" type="search" name="q" value="@Model.Query" maxlength="100"
-                       class="form-control form-control-lg" placeholder="e.g. attendance, crop price, chatbot" />
-            </div>
+    <div class="browse-grid">
+        <aside class="browse-sidebar" aria-label="Search and filters">
+            <form method="get" asp-controller="Browse" asp-action="Index" class="filter-panel">
+                <div class="filter-panel-heading"><span class="filter-icon"><i class="bi bi-sliders"></i></span><div><span class="eyebrow">Refine your search</span><h2>Project filters</h2></div></div>
+                <input type="hidden" name="q" value="@Model.Query" />
 
-            <div class="col-md-4 col-lg-3">
-                <label for="university" class="form-label fw-semibold small mb-1">University</label>
+                <label for="university" class="form-label">University</label>
                 <select id="university" name="university" class="form-select">
                     <option value="">All universities</option>
                     @foreach (var u in Model.Universities)
@@ -50,10 +46,8 @@
                         <option value="@u.Name" selected="@(Model.University == u.Name)">@u.Name (@u.Count)</option>
                     }
                 </select>
-            </div>
 
-            <div class="col-md-4 col-lg-2">
-                <label for="year" class="form-label fw-semibold small mb-1">Year</label>
+                <label for="year" class="form-label">Year</label>
                 <select id="year" name="year" class="form-select">
                     <option value="">All years</option>
                     @foreach (var y in Model.Years)
@@ -61,10 +55,8 @@
                         <option value="@y" selected="@(Model.Year == y)">@y</option>
                     }
                 </select>
-            </div>
 
-            <div class="col-md-4 col-lg-3">
-                <label for="area" class="form-label fw-semibold small mb-1">Area</label>
+                <label for="area" class="form-label">Project area</label>
                 <select id="area" name="area" class="form-select">
                     <option value="">All areas</option>
                     @foreach (var a in Model.Areas)
@@ -72,82 +64,69 @@
                         <option value="@a.Name" selected="@(Model.Area == a.Name)">@a.Name (@a.Count)</option>
                     }
                 </select>
-            </div>
 
-            <div class="col-md-6 col-lg-2">
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="awardsOnly" name="awardsOnly" value="true" @(Model.AwardsOnly ? "checked" : null) />
-                    <label class="form-check-label small" for="awardsOnly"><i class="bi bi-trophy"></i> Award winners only</label>
+                <label class="award-filter" for="awardsOnly"><input class="form-check-input" type="checkbox" id="awardsOnly" name="awardsOnly" value="true" @(Model.AwardsOnly ? "checked" : null) /><span><i class="bi bi-trophy"></i> Award-winning projects only</span></label>
+                <button type="submit" class="btn-brand filter-submit"><i class="bi bi-search"></i> Apply filters</button>
+                <a asp-action="Index" class="filter-reset"><i class="bi bi-arrow-counterclockwise"></i> Clear all filters</a>
+                <div class="filter-note"><i class="bi bi-info-circle"></i><span>Leave University on “All universities” to explore the full collection.</span></div>
+            </form>
+        </aside>
+
+        <section class="project-column" aria-label="Project results">
+            <form method="get" asp-controller="Browse" asp-action="Index" class="browse-searchbar">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="search" name="q" value="@Model.Query" maxlength="100" aria-label="Search all FYP projects" placeholder="Search project titles, topics, or keywords" />
+                <input type="hidden" name="university" value="@Model.University" />
+                <input type="hidden" name="year" value="@Model.Year" />
+                <input type="hidden" name="area" value="@Model.Area" />
+                @if (Model.AwardsOnly) { <input type="hidden" name="awardsOnly" value="true" /> }
+                <button type="submit" aria-label="Search projects">Search</button>
+            </form>
+
+            <div class="results-heading">
+                <div><span class="eyebrow">The project library</span><h2>Explore FYP projects</h2></div>
+                <span class="result-count"><strong>@Model.Total</strong> @(Model.Total == 1 ? "project" : "projects")</span>
+            </div>
+            @if (Model.Error == null)
+            {
+                @if (Model.TotalPages > 1)
+                {
+                    <p class="page-context">Showing page @Model.Page of @Model.TotalPages <span>·</span> Your filters carry across pages</p>
+                }
+                @if (Model.Items.Count == 0)
+                {
+                    <div class="empty-projects"><span><i class="bi bi-journal-x"></i></span><h3>No projects found</h3><p>@(Model.HasFilter ? "Try a broader search or clear a filter to see more projects." : "No projects have been added yet.")</p>@if (Model.HasFilter) { <a asp-action="Index" class="btn-outline-brand auto-width">Show all projects</a> }</div>
+                }
+                else
+                {
+                    <div class="project-list">
+                        @foreach (var item in Model.Items)
+                        {
+                            <partial name="_ProjectCard" model="item" />
+                        }
+                    </div>
+                    @if (Model.TotalPages > 1)
+                    {
+                        <nav class="pager browse-pager" aria-label="Project result pages">
+                            @if (Model.Page > 1) { <a href="@PageUrl(Model.Page - 1)" class="btn-outline-brand auto-width"><i class="bi bi-arrow-left"></i> Previous</a> }
+                            <span class="pager-info">Page @Model.Page of @Model.TotalPages</span>
+                            @if (Model.Page < Model.TotalPages) { <a href="@PageUrl(Model.Page + 1)" class="btn-outline-brand auto-width">Next <i class="bi bi-arrow-right"></i></a> }
+                        </nav>
+                    }
+                }
+            }
+        </section>
+
+        <aside class="detail-column" aria-label="Selected project details">
+            <div class="detail-panel" id="projectDetailsPanel" aria-live="polite">
+                <div class="detail-topline"><span class="detail-icon"><i class="bi bi-card-text"></i></span><span class="eyebrow">Project snapshot</span></div>
+                <div class="detail-placeholder" id="detailPlaceholder"><span class="detail-illustration"><i class="bi bi-cursor"></i></span><h2>Choose a project</h2><p>Select <strong>Quick view</strong> on any card to see its details here, without leaving the list.</p><div class="detail-hint"><i class="bi bi-lightbulb"></i> Tip: use university filters to focus your research.</div></div>
+                <div class="detail-content d-none" id="detailContent">
+                    <div class="detail-tags" id="detailTags"></div><h2 id="detailTitle"></h2><p id="detailUniversity" class="detail-university"></p><p id="detailDescription" class="detail-description"></p><div id="detailMeta" class="detail-meta"></div><a id="detailSource" class="btn-brand detail-source d-none" href="#" target="_blank" rel="noopener noreferrer"><i class="bi bi-box-arrow-up-right"></i> Open original project</a><p id="detailNoSource" class="link-missing d-none"><i class="bi bi-link-45deg"></i> Original link not available</p>
                 </div>
             </div>
-
-            <div class="col-md-6 col-lg-2 d-flex gap-2">
-                <button type="submit" class="btn-brand" aria-label="Search"><i class="bi bi-search"></i> Search</button>
-                <a asp-action="Index" class="btn-outline-brand" aria-label="Reset filters"><i class="bi bi-x-lg"></i></a>
-            </div>
-        </form>
-    </div>
-
-    <!-- Results -->
-    @if (Model.Error == null)
-    {
-        <p class="text-muted mb-3">
-            @if (Model.Total == 0)
-            {
-                <span>No projects found.</span>
-            }
-            else
-            {
-                <span><strong>@Model.Total</strong> @(Model.Total == 1 ? "project" : "projects") found
-                    @if (Model.TotalPages > 1) { <span> &bull; page @Model.Page of @Model.TotalPages</span> }
-                </span>
-            }
-        </p>
-
-        @if (Model.Items.Count == 0)
-        {
-            <div class="step-card text-center text-muted">
-                <i class="bi bi-inbox display-5"></i>
-                <p class="mt-2 mb-3">
-                    @(Model.HasFilter ? "Nothing matches these filters. Try fewer words or reset the filters." : "No projects have been added yet.")
-                </p>
-                @if (Model.HasFilter)
-                {
-                    <a asp-action="Index" class="btn-outline-brand auto-width">Reset filters</a>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="row g-3">
-                @foreach (var item in Model.Items)
-                {
-                    <div class="col-lg-6">
-                        <partial name="_ProjectCard" model="item" />
-                    </div>
-                }
-            </div>
-
-            @if (Model.TotalPages > 1)
-            {
-                <nav class="pager mt-4" aria-label="Pages">
-                    @if (Model.Page > 1)
-                    {
-                        <a href="@PageUrl(Model.Page - 1)" class="btn-outline-brand auto-width"><i class="bi bi-arrow-left"></i> Previous</a>
-                    }
-                    <span class="pager-info">Page @Model.Page of @Model.TotalPages</span>
-                    @if (Model.Page < Model.TotalPages)
-                    {
-                        <a href="@PageUrl(Model.Page + 1)" class="btn-outline-brand auto-width">Next <i class="bi bi-arrow-right"></i></a>
-                    }
-                </nav>
-            }
-        }
-    }
-
-    <div class="cta-band mt-5">
-        <h2 class="fw-bold mb-2">Have an idea?</h2>
-        <p class="mb-4" style="opacity: .92;">Check it against all these projects by meaning, not just by words.</p>
-        <a href="/Check/Upload" class="btn-gold">Check my idea <i class="bi bi-arrow-right"></i></a>
+            <div class="collection-note"><span class="note-icon"><i class="bi bi-database-check"></i></span><h3>Growing collection</h3><p>New project records can be collected as ideas are checked. Search here to discover existing work.</p></div>
+            <div class="mini-cta"><span class="eyebrow">Have a proposal?</span><h3>Check your idea against the collection.</h3><a href="/Check/Upload">Start an idea check <i class="bi bi-arrow-up-right"></i></a></div>
+        </aside>
     </div>
 </section>

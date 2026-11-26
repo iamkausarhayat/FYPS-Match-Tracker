@@ -1,7 +1,11 @@
 ﻿@model BrowseItem
 
 @* Ek project card. Browse page aur home page dono isay use karte hain. *@
-<div class="match-card proj-card h-100">
+<article class="match-card proj-card h-100" data-project-card
+         data-title="@Model.Title" data-university="@Model.UniversityName" data-year="@Model.Year"
+         data-area="@Model.Area" data-description="@Model.Description" data-supervisor="@Model.Supervisor"
+         data-authors="@Model.Authors" data-award="@(Model.IsAward ? Model.AwardText ?? "Award winner" : "")"
+         data-source="@Model.SourceUrl" data-title-only="@Model.IsTitleOnly.ToString().ToLowerInvariant()">
     <div class="mb-1">
         @if (Model.IsAward)
         {
@@ -50,7 +54,10 @@
         }
     }
 
-    <div class="mt-2">
+    <div class="mt-2 d-flex flex-wrap align-items-center gap-2">
+        <button type="button" class="btn-outline-brand auto-width quick-view" data-project-quick-view aria-pressed="false">
+            <i class="bi bi-eye"></i> Quick view
+        </button>
         @if (Model.HasSourceUrl)
         {
             <a href="@Model.SourceUrl" target="_blank" rel="noopener noreferrer"
@@ -63,4 +70,4 @@
             <span class="link-missing"><i class="bi bi-link-45deg"></i> Link not available</span>
         }
     </div>
-</div>
+</article>
